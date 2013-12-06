@@ -25,9 +25,7 @@
 %</driver>
 %<package>\NeedsTeXFormat{LaTeX2e}[1999/12/01]
 %<package>\ProvidesPackage{pgfdata}
-%<*package>
-    [2013/12/06 0.1 pgfdata]
-%</package>
+%<package> [2013/12/06 v0.1 pgfdata]
 %
 %<*driver>
 \documentclass{ltxdoc}
@@ -35,6 +33,7 @@
 \EnableCrossrefs
 \CodelineIndex
 \RecordChanges
+% \OnlyDescription
 \begin{document}
   \DocInput{pgfdata.dtx}
   \PrintChanges
@@ -43,7 +42,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{547}
+% \CheckSum{0}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -62,14 +61,14 @@
 %   Right brace   \}     Tilde         \~}
 %
 %
-% \changes{<+version+>}{<+date+>}{Converted to DTX file}
+% \changes{v0.1}{2013/12/06}{Initial version}
 %
 % \DoNotIndex{\newcommand,\newenvironment}
 %
 % \providecommand*{\url}{\texttt}
-% \GetFileInfo{pgfdata.dtx}
+% \GetFileInfo{pgfdata.sty}
 % \title{The \textsf{pgfdata} package}
-% \author{<+author+> \\ \url{<+email+>}}
+% \author{Christian Dietrich \\ \url{stettberger@dokucode.de}}
 % \date{\fileversion~from \filedate}
 %
 % \maketitle
@@ -127,9 +126,9 @@
 \else
   \def\pgfdata@error#1{\PackageError{pgfdata}{#1}{}}%
 \fi
-\NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{pgfdata}[2013/11/18 pgfkeys operations to handle data]
-\RequirePackage{pgfkeys}
+% \end{macrocode}
+% 
+% \begin{macrocode}
 \RequirePackage{pgf}
 \RequirePackage{kvoptions}
 \RequirePackage{xparse}
@@ -233,7 +232,6 @@
 %
 %
 % \begin{macro}{\pgfdata@let}
-% \pgfdata@let{a=/foo}
 %    \begin{macrocode}
 \def\pgfdata@let#1{%
   \def\@tmp##1=##2;{\pgfmathdeclarefunction*{##1}{0}{\pgfmathparse{##2}}}%
@@ -261,10 +259,10 @@
 }
 \DeclareDocumentCommand{\pgfdatacalc}{s O{} m O{}}{%
 %    \end{macrocode}
-% #1: do print?
-% #2: formatting options
-% #3: Binding
-% #4: Expression
+% 1: do print?
+% 2: formatting options
+% 3: Binding
+% 4: Expression
 %    \begin{macrocode}
   \begingroup%
   \pgfdata@calc[#2]{#3}%
@@ -288,10 +286,10 @@
 %    \begin{macrocode}
 \DeclareDocumentCommand{\pgfdataformat}{O{} m}{%
 %    \end{macrocode}
-% #1: do print?
-% #2: formatting options
-% #3: Binding
-% #4: Expression
+% 1: do print??
+% 2: formatting options
+% 3: Binding
+% 4: Expression
 %    \begin{macrocode}
   \pgfdata@format[#1]{#2}%
 }
@@ -571,8 +569,8 @@
 %    \begin{macrocode}
 \newcommand{\pgfdata@usagereport@referenced}[2]{
 %    \end{macrocode}
-% #1 == key
-% #2 == \thepage
+% 1 == key
+% 2 == thepage
 %    \begin{macrocode}
   \ifinlistcs{#2}{pgfdata@usagereport@referenced@#1}{}{
     \listcsgadd{pgfdata@usagereport@referenced@#1}{#2}
