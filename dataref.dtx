@@ -1,0 +1,743 @@
+% \iffalse meta-comment
+%
+% Copyright (C) 2013 by Christian Dietrich <stettberger@dokucode.de>
+% ---------------------------------------------------------------------------
+% This work may be distributed and/or modified under the
+% conditions of the LaTeX Project Public License, either version 1.3
+% of this license or (at your option) any later version.
+% The latest version of this license is in
+%   http://www.latex-project.org/lppl.txt
+% and version 1.3 or later is part of all distributions of LaTeX
+% version 2005/12/01 or later.
+%
+% This work has the LPPL maintenance status `maintained'.
+%
+% The Current Maintainer of this work is Christian Dietrich.
+%
+% This work consists of the files dref.dtx and dref.ins
+% and the derived filebase dref.sty.
+%
+% \fi
+%
+% \iffalse
+%<*driver>
+\ProvidesFile{dataref.dtx}
+%</driver>
+%<package>\NeedsTeXFormat{LaTeX2e}[1999/12/01]
+%<package>\ProvidesPackage{dref}
+%<package> [2013/12/06 v0.1 dref]
+%
+%<*driver>
+\documentclass{ltxdoc}
+\usepackage{dataref}[2013/12/06]
+\EnableCrossrefs
+\CodelineIndex
+\RecordChanges
+\usepackage{listings}
+\usepackage{filecontents}
+\begin{filecontents}{datapoints.tex}
+\drefset{/control group/mice race}{Black Six}
+\drefset{/control group/mice count}{32}
+\drefset{/control group/dead after 24h}{3}
+\drefset{/control group/dead after 48h}{7}
+\drefset{/control group/recovered }{6}
+
+\drefset{/medicament A/mice race}{Black Six}
+\drefset{/medicament A/mice count}{32}
+\drefset{/medicament A/dead after 24h}{6}
+\drefset{/medicament A/dead after 48h}{1}
+\drefset{/medicament A/recovered }{9}
+\end{filecontents}
+\input{datapoints}
+% \OnlyDescription
+\begin{document}
+  \DocInput{dataref.dtx}
+  \PrintChanges
+  \PrintIndex
+\end{document}
+%</driver>
+% \fi
+%
+% \CheckSum{0}
+%
+% \CharacterTable
+%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%   Digits        \0\1\2\3\4\5\6\7\8\9
+%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%   Dollar        \$     Percent       \%     Ampersand     \&
+%   Acute accent  \'     Left paren    \(     Right paren   \)
+%   Asterisk      \*     Plus          \+     Comma         \,
+%   Minus         \-     Point         \.     Solidus       \/
+%   Colon         \:     Semicolon     \;     Less than     \<
+%   Equals        \=     Greater than  \>     Question mark \?
+%   Commercial at \@     Left bracket  \[     Backslash     \\
+%   Right bracket \]     Circumflex    \^     Underscore    \_
+%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%   Right brace   \}     Tilde         \~}
+%
+%
+% \changes{v0.1}{2013/12/06}{Initial version}
+%
+% \DoNotIndex{\newcommand,\newenvironment}
+%
+% \providecommand*{\url}{\texttt}
+% \GetFileInfo{dataref.sty}
+% \title{The \textsf{dataref} package}
+% \author{Christian Dietrich \\ \url{stettberger@dokucode.de}}
+% \date{\fileversion~from \filedate}
+%
+% \maketitle
+%
+% \section{Introduction}
+%
+% Writing scientific texts is a craft. It is the craft of communicating your results to your colleagues and to the curious world public. Often your conclusions are based upon facts and numbers that you gathered during your research for the specific topic. You might have done many experiments and produced lot of data. The craft of writing is to guide your reader through a narrative that is based upon that data. But there may be many versions of that data. Perhaps you found a problem in your experiment, while already writing, that forces you back into the laboratory. After a while, the moon has done its circle many times, you return from that dark place and your methodology has improved as significantly as your data has. But now you have to rewrite that parts of the data, that reference the old data points.
+%
+% The \textsf{dataref} is here to help you with managing your data points. It provides you with macro style keys, that represent symbolic names for your datapints. You can reference those symbolic names with \cmd{\dref}, use them in calculations to have always up-to-date percentage values, define projections between sets of data points and document them. \textsf{dataref} also introduces the notion of assertions (\cmd{\drefassert}) for your results to ensure that your prosa text references fit the underlying data.
+%
+% \section{Usage}
+%
+% The \textsf{dataref} package heavily uses \textsf{pgfkeys} and \textsf{pgfmath} to perform storage and operations upon data points. See \texttt{texdoc pgfmanual} for further informations about those topics.
+%
+% \subsection{Defining Data Points}
+%
+% \DescribeMacro{\drefset}
+%
+% The \cmd{\drefset} command is used to define the symbolic data points. The first argument is the symbolic name, the second argument is the value. The value can be a number, but it can also be arbitrary text. The key may contain virtually all characters, including spaces and slashes. It is good practice use a hierarchy to structure you data point names.
+%
+% \lstinputlisting[language=tex, firstline=5,basicstyle=\footnotesize,frame=single]{datapoints.tex}
+%
+% The code snippet, that is best stored in an external file, and which might be auto-generated, is best read with \cmd{\input}. It defines 10 symbolic names, that are partitioned into two "directories" (\texttt{control group} and \texttt{medicament A}).
+%
+% \DescribeMacro{\dref}
+%
+% \dref{/control group/mice count}
+%
+%
+% \DescribeMacro{\dreflet}
+%
+%
+% \DescribeMacro{\drefvalueof}
+%
+%
+% \DescribeMacro{\drefref}
+%
+%
+% \DescribeMacro{\drefsethelp}
+%
+%
+% \DescribeMacro{\drefhelp}
+%
+%
+% \DescribeMacro{\drefusagereport}
+%
+%
+% \DescribeMacro{\drefassert}
+%
+%
+% \StopEventually{}
+%
+% \section{Implementation}
+%
+% \iffalse
+%<*package>
+% \fi
+%
+% Guard against reading twice
+%    \begin{macrocode}
+\ifx\drefloaded\undefined
+  \let\drefloaded=\relax
+\else
+  \expandafter\endinput
+\fi
+\ifx\PackageError\undefined
+  \def\dref@error#1{\immediate\write-1{Package dref: Error! #1.}}%
+\else
+  \def\dref@error#1{\PackageError{dref}{#1}{}}%
+\fi
+% \end{macrocode}
+% 
+% \begin{macrocode}
+\RequirePackage{pgf}
+\RequirePackage{kvoptions}
+\RequirePackage{xparse}
+\RequirePackage{etoolbox}
+\RequirePackage{etextools}
+%    \end{macrocode}
+% Options for this package:
+% datapath: were is the data located
+% aliaspath: were to put aliases
+%
+%    \begin{macrocode}
+\SetupKeyvalOptions{
+  family=dref,
+  prefix=dref@
+}
+\DeclareStringOption[/data]{datapath}
+\DeclareStringOption[1]{defaultvalue}
+\DeclareStringOption[none]{annotate}
+\DeclareBoolOption{usagereport}
+\DeclareBoolOption{ignoremissing}
+\ProcessKeyvalOptions*
+%    \end{macrocode}
+%
+% \begin{macro}{\dref@set}
+%    \begin{macrocode}
+\newcommand{\dref@set}[2]{%
+    \pgfkeys@temptoks{#2}%
+    \expandafter\xdef\csname pgfk@\dref@datapath#1\endcsname{\the\pgfkeys@temptoks}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\drefset}
+%    \begin{macrocode}
+\def\drefset#1#2{\dref@set{#1}{#2}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\dref}
+%    \begin{macrocode}
+\DeclareDocumentCommand{\dref}{o m}{%
+  \dref@unexpandable{#2}%
+  \dref@mkannotate{#2}%
+  \IfNoValueTF {#1}{%
+    \gdef\dref@dref@output{\dref@expandable{#2}}%
+  }{%
+    \gdef\dref@dref@output{%
+      \pgfmathparse{\dref@expandable{#2}}%
+      \dref@format[#1]{\pgfmathresult}%
+    }%
+  }%
+  \ifdref@usagereport%
+    \ifdef{\hyperlink}{%
+      \expandafter\hyperlink\expandafter{\dref@datapath#2}{\dref@dref@output}%
+    }{\dref@dref@output}%
+  \else%
+    \dref@dref@output%
+  \fi%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\dref@notfound}
+%    \begin{macrocode}
+\long\def\dref@notfound#1#2{
+  \ifdref@usagereport%
+    \dref@usagereport@notfound{#1}{#2}%
+  \else\relax\fi%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\dref@found}
+%    \begin{macrocode}
+\long\def\dref@found#1#2{
+  \ifdref@usagereport%
+    \dref@usagereport@found{#1}{#2}%
+  \else\relax\fi%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\dref@referenced}
+%    \begin{macrocode}
+\long\def\dref@referenced#1#2{
+  \ifdref@usagereport%
+    \dref@usagereport@referenced{#1}{#2}%
+  \else\relax\fi%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\dref@expandable}
+%    \begin{macrocode}
+\long\def\dref@expandable#1{%
+  \pgfkeysifdefined{\dref@datapath#1}{%
+    \pgfkeysvalueof{\dref@datapath#1}%
+  }{%
+    \dref@defaultvalue%
+  }%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\dref@unexpandable}
+%    \begin{macrocode}
+\long\def\dref@unexpandable#1{%
+  \def\drefcurrentkey{\dref@datapath#1}%
+  \pgfkeysifdefined{\drefcurrentkey}{%
+%    \end{macrocode}
+% Key is defined, mark it as found
+%    \begin{macrocode}
+    \immediate\write\@auxout{\noexpand\dref@found{\drefcurrentkey}{\thepage}}%
+  }{%
+%    \end{macrocode}
+% Key is undefined, write an warning and output to .aux file
+%    \begin{macrocode}
+    \immediate\write\@auxout{\noexpand\dref@notfound{\drefcurrentkey}{\thepage}}%
+    \ifdref@ignoremissing%
+       \typeout{Dref warning: undefined key `\drefcurrentkey'}%
+       \dref@mkannotate{UNDEFINED: \drefcurrentkey}%
+    \else%
+       \dref@error{Dref error: undefined key `\drefcurrentkey'}%
+    \fi%
+  }%
+  \immediate\write\@auxout{\noexpand\dref@referenced{\drefcurrentkey}{\thepage}}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\dref@let}
+%    \begin{macrocode}
+\def\dref@let#1{%
+  \def\@tmp##1=##2;{\pgfmathdeclarefunction*{##1}{0}{\pgfmathparse{##2}}}%
+  \renewcommand*{\do}[1]{\@tmp##1;}%
+  \docsvlist{#1}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\dreflet}
+%    \begin{macrocode}
+\def\dreflet#1{%
+  \dref@let{#1}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%    \begin{macrocode}
+\DeclareDocumentCommand{\dref@calc}{o m}{%
+  \IfNoValueTF {#1}{}{%
+    \dref@let{#1}%
+  }%
+  \pgfmathparse{#2}%
+}
+\DeclareDocumentCommand{\drefcalc}{s O{} m O{}}{%
+%    \end{macrocode}
+% 1: do print?
+% 2: formatting options
+% 3: Binding
+% 4: Expression
+%    \begin{macrocode}
+  \begingroup%
+  \dref@calc[#2]{#3}%
+  \IfBooleanTF {#1} {}% Wit star do not print anything
+               {%
+                 \dref@mkannotate{#3}%
+                 \dref@format[#4]{\pgfmathresult}%
+               }%
+  \endgroup%
+}
+%    \end{macrocode}
+%
+% \begin{macro}{\dref@format}
+%    \begin{macrocode}
+\newcommand{\dref@format}[2][]{%
+  \pgfmathprintnumber[#1]{#2}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%    \begin{macrocode}
+\DeclareDocumentCommand{\drefformat}{O{} m}{%
+%    \end{macrocode}
+% 1: do print??
+% 2: formatting options
+% 3: Binding
+% 4: Expression
+%    \begin{macrocode}
+  \dref@format[#1]{#2}%
+}
+%    \end{macrocode}
+%
+% \begin{macro}{\drefvalueof}
+%    \begin{macrocode}
+\def\drefvalueof#1{%
+  \dref@expandable{#1}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\drefref}
+%    \begin{macrocode}
+\def\drefref#1{%
+  \dref@unexpandable{#1}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\dref@help}
+%    \begin{macrocode}
+\newcommand{\dref@help}[2][]{%
+  \pgfkeysifdefined{#2/help}{%
+    \pgfkeysvalueof{#2/help}%
+  }{#1}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+%
+% \begin{macro}{\dref@data@math@prefix}
+%    \begin{macrocode}
+\gdef\dref@data@math@prefix{}
+%    \end{macrocode}
+% \end{macro}
+%
+%    \begin{macrocode}
+\pgfmathdeclarefunction{data}{1}{%
+        \begingroup%
+                \dref@unexpandable{\dref@data@math@prefix#1}%
+                \pgfmathparse{\dref@expandable{\dref@data@math@prefix#1}}%
+                \pgfmath@smuggleone\pgfmathresult%
+        \endgroup%
+}
+\DeclareDocumentCommand{\drefprojection}{m m m}{%
+  \begingroup%
+     \def\dref@data@math@prefix{#1}%
+     \def\rename##1##2{\dref@unexpandable{#1/##1}\drefset{#2/##2}{\dref@expandable{#1/##1}}}%
+     \def\id##1{\rename{##1}{##1}}%
+     \def\calc##1##2{%
+       \begingroup%
+          \dref@calc{##1}%
+          \xdef\dref@project@result{\pgfmathresult}
+       \endgroup%
+       \drefset{#2/##2}{\dref@project@result}%
+      }%
+     #3%
+     \endgroup%
+}
+%    \end{macrocode}
+%
+% \begin{macro}{\dref@beginswith}
+%    \begin{macrocode}
+\def\dref@beginswith#1#2{%
+  \long\def\firstoftwo##1##2{##1}%
+  \long\def\secondoftwo##1##2{##2}%
+  \def\doifbegins##1#2##2\blanktest{%
+    \if\relax\detokenize{##1}\relax%
+    \expandafter\firstoftwo%
+    \else%
+    \expandafter\secondoftwo%
+    \fi%
+  }%
+  \if\relax\detokenize{\deblank{#1}}\relax%
+    \expandafter\firstoftwo%
+  \else%
+    \expandafter\secondoftwo%
+  \fi%
+    {\secondoftwo}%
+    {\doifbegins#1#2\blanktest}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%    \begin{macrocode}
+\newtoks\dref@toks
+%    \end{macrocode}
+%
+% \begin{macro}{\dref@makerow}
+%    \begin{macrocode}
+\newcommand{\dref@makerow}[2]{%
+  {\global\dref@toks={}%
+    \@tempcnta=\z@%
+    \def\inner##1##2{#2}%
+    \renewcommand*{\do}[1]{%
+      \advance\@tempcnta\@ne%
+      \csdef{@cell\number\@tempcnta}{\inner{##1}{\number\@tempcntb}}%
+    }%
+    \expandafter\def\expandafter\arglist\expandafter{#1}%
+    \expandafter\docsvlist\expandafter{\arglist}%
+    \@tempcntb=\z@
+        {\loop\ifnum\@tempcntb<\@tempcnta
+          \advance\@tempcntb\@ne
+          \edef\next{%
+            \ifnum\@tempcntb=\@ne\else&\fi
+            \csuse{@cell\number\@tempcntb}}%
+          \global\dref@toks=\expandafter{\the\expandafter\dref@toks\next}%
+          \repeat}%
+  }%
+  \the\dref@toks}
+\DeclareDocumentCommand{\drefrow}{s m m}{%
+  \IfBooleanTF {#1} {%
+    \dref@makerow{#2}{#3}%
+  }{% Wit star do not print anything
+    \dref@makerow{#2}{\dref[]{#3}}%
+  }%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%    \begin{macrocode}
+\expandafter\ifstrequal\expandafter{\dref@annotate}{marginnote}{
+   \RequirePackage{marginnote}
+%    \end{macrocode}
+% Fix for tow column mode from
+% http://www.komascript.de/node/985 
+%    \begin{macrocode}
+   \g@addto@macro\@mn@margintest{%
+     \if@twocolumn%
+       \ifx\@mn@currxpos\relax% don't know which margin use normal one
+         \normalmarginpar%
+       \else\ifx\@mn@currxpos\@empty% don't know which margin use normal one
+           \normalmarginpar%
+         \else%
+           \if@tempswa% use \oddsidemargin for tests
+             \ifdim\@mn@currxpos > \dimexpr \oddsidemargin+1in+\columnwidth\relax%
+               \normalmarginpar% right column --&gt; right margin
+             \else%
+               \reversemarginpar% left column --&gt; left margin
+             \fi%
+           \else% use \evensidemargin for tests
+             \ifdim\@mn@currxpos > \dimexpr \evensidemargin+1in+\columnwidth\relax%
+               \reversemarginpar% right column --&gt; right margin
+             \else%
+               \normalmarginpar% left column --&gt; left margin
+             \fi%
+           \fi%
+         \fi%
+       \fi%
+     \fi%
+   }
+}{}
+\expandafter\ifstrequal\expandafter{\dref@annotate}{pdfcomment}{
+  \RequirePackage{pdfcomment}
+}
+%    \end{macrocode}
+%
+% \begin{macro}{\dref@mkannotate}
+%    \begin{macrocode}
+\newcommand{\dref@mkannotate}[1]{%
+  \expandafter\ifstrequal\expandafter{\dref@annotate}{none}%
+    {\relax}%
+    {\expandafter\ifstrequal\expandafter{\dref@annotate}{marginnote}
+      {\marginnote{#1}}%
+      {\expandafter\ifstrequal\expandafter{\dref@annotate}{footnote}%
+        {\footnote{#1}}%
+        {\expandafter\ifstrequal\expandafter{\dref@annotate}{pdfcomment}%
+          {\pdfcomment[opacity=0.4,voffset=2ex]{#1}}%
+          {\dref@error{Value for annotate not supported: '\dref@annotate'}%
+          }}}}}%
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\dref@help@match}
+%% Help System
+%    \begin{macrocode}
+\newcommand{\dref@help@match}[2]{%
+  \ifstrmatch{#1}{#2}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\drefsethelp}
+%    \begin{macrocode}
+\newcommand{\drefsethelp}[2]{
+  \csdef{dref@help@#1}{#2}%
+  \listcsadd{dref@helps}{#1}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\drefhelp}
+%    \begin{macrocode}
+\newcommand{\drefhelp}[1]{
+  \renewcommand{\do}[1]{%
+    \dref@help@match{##1}{#1}{%
+      \csuse{dref@help@##1}%
+    \listbreak}{}%
+  }%
+  \dolistcsloop{dref@helps}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%% Usagereport
+%    \begin{macrocode}
+\expandafter\ifstrequal\expandafter{\dref@annotate}{usagereport}{
+  \RequirePackage{longtable}
+  \RequirePackage{booktabs}
+}
+%    \end{macrocode}
+%
+% \begin{macro}{\dref@usagereport@notfound}
+%    \begin{macrocode}
+\newcommand{\dref@usagereport@notfound}[2]{}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\dref@usagereport@found}
+%    \begin{macrocode}
+\newcommand{\dref@usagereport@found}[2]{}
+%    \end{macrocode}
+% \end{macro}
+%
+%    \begin{macrocode}
+\csdef{pgfdat@usagereport@keys}{\relax}
+\csdef{pgfdat@usagereport@matchedkeys}{\relax}
+%    \end{macrocode}
+%
+% \begin{macro}{\dref@usagereport@referenced}
+%    \begin{macrocode}
+\newcommand{\dref@usagereport@referenced}[2]{
+%    \end{macrocode}
+% 1 == key
+% 2 == thepage
+%    \begin{macrocode}
+  \ifinlistcs{#2}{dref@usagereport@referenced@#1}{}{
+    \listcsgadd{dref@usagereport@referenced@#1}{#2}
+  }
+  \ifinlistcs{#1}{dref@usagereport@keys}{}{
+    \listcsgadd{dref@usagereport@keys}{#1}
+  }
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%    \begin{macrocode}
+\expandafter\def\expandafter\dref@usagereport@strippath@\dref@datapath#1\blanktest{#1}
+%    \end{macrocode}
+%
+% \begin{macro}{\dref@usagereport@strippath}
+%    \begin{macrocode}
+\newcommand{\dref@usagereport@strippath}[1]{%
+  \expandafter\ifstrmatch\expandafter{\expandafter^\dref@datapath.*$}{#1}%
+    {\dref@usagereport@strippath@#1\blanktest}%
+    {#1}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\dref@usagereport@formatreferencelist}
+%    \begin{macrocode}
+\newcommand{\dref@usagereport@formatreferencelist}[1]{%
+  \begingroup%
+  \def\sep{}%
+  \renewcommand{\do}[1]{\sep\ifdef{\hyperlink}{\hyperlink{page.##1}{##1}}{##1}\def\sep{, }}%
+  \dolistcsloop{dref@usagereport@referenced@#1}%
+  \endgroup%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\dref@usagereport@keyheader}
+%    \begin{macrocode}
+\newcommand{\dref@usagereport@keyheader}[1]{%
+  \textbf{\ifdef{\hypertarget}%
+    {\hypertarget{#1}{\dref@usagereport@strippath{#1}}}%
+    {\dref@usagereport@strippath{#1}}}%
+  & \dref@usagereport@formatreferencelist{#1}%
+  & \pgfkeysifdefined{#1}{\pgfkeysvalueof{#1}}{\textbf{\red{undefined}}} \\%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\dref@usagereport@forhelp}
+%    \begin{macrocode}
+\newcommand{\dref@usagereport@forhelp}[1]{%
+  \begingroup%
+  \noindent\csuse{dref@help@#1}
+  \renewcommand{\do}[1]{%
+    \dref@help@match{#1}{##1}{%
+      \dref@usagereport@keyheader{##1}%
+      \ifinlistcs{##1}{dref@usagereport@matchedkeys}{}{%
+        \listcsgadd{dref@usagereport@matchedkeys}{##1}%
+      }%
+    }{}%
+  }%
+  \begin{longtable}{lll}\toprule%
+    & Page(s) & Value \\ \midrule
+  \dolistcsloop{dref@usagereport@keys}%
+  \end{longtable}%
+  \endgroup%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\dref@usagereport@withouthelp}
+%    \begin{macrocode}
+\newcommand{\dref@usagereport@withouthelp}{%
+  \renewcommand{\do}[1]{%
+    \ifinlistcs{##1}{dref@usagereport@matchedkeys}{}{%
+      \dref@usagereport@keyheader{##1}%
+    }%
+  }%
+  \begin{longtable}{lll}\toprule%
+    Keys without Help  & Page(s) & Value \\\midrule
+    \endhead
+    \dolistcsloop{dref@usagereport@keys}%
+  \end{longtable}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\drefusagereport}
+%    \begin{macrocode}
+\newcommand{\drefusagereport}{%
+  \ifdref@usagereport%
+  \ifcsvoid{dref@usagereport@keys}{\typeout{EMPTY}}{%
+  \begingroup%
+  \setlength{\LTleft}{2em}%
+  \setlength{\LTright}{0pt}%
+  \renewcommand{\do}[1]{%
+    \ifinlistcs{##1}{dref@usagereport@matchedkeys}{}{%
+      \dref@usagereport@forhelp{##1}%
+    }%
+  }%
+  \dolistcsloop{dref@helps} % For all help text
+  \setlength{\LTleft}{0em}%
+  \dref@usagereport@withouthelp\relax
+  \endgroup%
+  }% ifempty @keys
+  \fi%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\drefassert}
+%% Assert
+%    \begin{macrocode}
+\newcommand{\drefassert}[1]{%
+  \begingroup%
+    \pgfmathsetmacro{\result}{(#1) ? 1 : 0}
+    \expandafter\ifstrequal\expandafter{\result}{1.0}{%
+      \typeout{Assertion holds: #1}%
+    }{%
+      \dref@error{Assertion failed: #1}%
+   }%
+  \endgroup%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%    \begin{macrocode}
+\endinput
+%    \end{macrocode}
+%
+% \iffalse
+%</package>
+% \fi
+%
+% \Finale
+\endinput
