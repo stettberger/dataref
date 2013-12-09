@@ -49,7 +49,8 @@
 \drefset{/med A/dead after 48h}{1}
 \drefset{/med A/recovered}{9}
 
-\drefsethelp{.*/mice race}{The mice race used for experiments heavily influences the outcome of the results}
+\drefsethelp{.*/mice race}{The mice race used for experiments heavily 
+     influences the outcome of the results}
 \end{filecontents}
 \input{datapoints}
 % \OnlyDescription
@@ -133,15 +134,25 @@
 % This is complement of \cmd{\drefvalueof}, it does \emph{only} the book keeping for a key (marking it as referenced etc.) So it might be used to compensate the usage of its bad sibling.
 %
 % \DescribeMacro{\drefsethelp}
-%
-%
 % \DescribeMacro{\drefhelp}
 %
+% \textsf{dataref} comes with a simple method for defining documentation for data points. This help for example be used to communicate what is the concrete semantiv of the data point. This is of special interest when writter and data gatherer are not the same person. \cmd{\drefsethelp} takes two arguments: first a regular expression that matches the symbolic data point, second the help text.
 %
+% \lstinputlisting[language=tex, firstline=17, lastline=18,basicstyle=\footnotesize,frame=single]{datapoints.tex}
+%
+% The helptext for a key is obtained by using \cmd{\drefhelp} macro. It checks all defined helps (in linear order, first defined, first matched), and prints the first matching help text.
+%
+% \begin{quote}
+%  \verb|\drefhelp{/med A/mice race}|
+% \end{quote}
+%
+% \DescribeMacro{\drefcalc}
+% \newcommand{\D}[1]{data("#1")}
+% \drefcalc{\D{/med A/recovered}/\D{/med A/mice count} * 100.0}
 % \DescribeMacro{\dreflet}
-%
-%
-%
+% \DescribeMacro{\drefformat}
+% \DescribeMacro{\drefprojection}
+% \DescribeMacro{\drefrow}
 %
 % \DescribeMacro{\drefusagereport}
 %
