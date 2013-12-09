@@ -29,7 +29,7 @@
 %
 %<*driver>
 \documentclass{ltxdoc}
-\usepackage{dataref}[2013/12/06]
+\usepackage[usagereport]{dataref}[2013/12/06]
 \EnableCrossrefs
 \CodelineIndex
 \RecordChanges
@@ -133,6 +133,9 @@
 %
 %
 % \DescribeMacro{\drefassert}
+
+%
+% \drefusagereport
 %
 %
 % \StopEventually{}
@@ -545,6 +548,7 @@
 %
 % \begin{macro}{\drefsethelp}
 %    \begin{macrocode}
+\csdef{dref@helps}{\relax}
 \newcommand{\drefsethelp}[2]{
   \csdef{dref@help@#1}{#2}%
   \listcsadd{dref@helps}{#1}%
@@ -568,10 +572,10 @@
 %
 %% Usagereport
 %    \begin{macrocode}
-\expandafter\ifstrequal\expandafter{\dref@annotate}{usagereport}{
+\ifdref@usagereport
   \RequirePackage{longtable}
   \RequirePackage{booktabs}
-}
+\fi
 %    \end{macrocode}
 %
 % \begin{macro}{\dref@usagereport@notfound}
