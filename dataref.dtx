@@ -34,7 +34,7 @@
 \CodelineIndex
 \RecordChanges
 \usepackage{listings}
-\usepackage{tabularx}
+\usepackage{pdfcomment}
 \usepackage{filecontents}
 \begin{filecontents}{datapoints.tex}
 \drefset{/control group/mice race}{Black Six}
@@ -51,6 +51,10 @@
 
 \drefsethelp{.*/mice race}{The mice race used for experiments heavily 
      influences the outcome of the results}
+
+\drefsethelp{.*/(dead after|recovered)}{Of all infected mice, a
+  certain number died within a specified period of time. A certain
+  recovered from the infection. Each mouse falls into one this category.}
 \end{filecontents}
 \input{datapoints}
 % \OnlyDescription
@@ -103,7 +107,7 @@
 %
 % \subsection{Defining Data Points}
 %
-% \DescribeMacro{\drefset}
+% \DescribeMacro{\drefset\{\meta{name}\}\{\meta{value}\}}
 %
 % The \cmd{\drefset} command is used to define the symbolic data points. The first argument is the symbolic name, the second argument is the value. The value can be a number, but it can also be arbitrary text. The key may contain virtually all characters, including spaces and slashes. It is good practice use a hierarchy to structure you data point names.
 %
@@ -111,7 +115,7 @@
 %
 % The code snippet, that is best stored in an external file, and which might be auto-generated, is best read with \cmd{\input}. It defines 10 symbolic names, that are partitioned into two "directories" (\texttt{control group} and \texttt{medicament A}).
 %
-% \DescribeMacro{\dref}
+% \DescribeMacro{\dref\{\meta{name}\}}
 %
 % This macro is used to reference a single symbolic data point. The value stored in that datapoint is inserted into the text. \cmd{\dref} does additonally mark the data point as used. It will then appear in the dref usage report. For undefined keys the default behaviour is to abort the compilation. But the package option \texttt{ignoremissing} just outputs a warning. All referenced/missing/found datapoints are noted in the aux file.
 %
@@ -125,16 +129,27 @@
 %
 % \cmd{\dref} additionally takes an optional argument. This argument is interpreted as \texttt{/pgf/number format/} argument. See the pgf/tikz manual for more information. Only if the optional argument is present the value is printed as a number, so \verb|[]| is a useful option, since it enforces printing it as a number with the proper number format applied. Be aware that \cmd{\dref} is \textbf{not} expandable.
 %
-% \DescribeMacro{\drefvalueof}
+% \DescribeMacro{\drefvalueof\{\meta{name}\}}
 %
 % Since \cmd{\dref} is not expandable, this macro can be used to get the bare value of a symbolic data point. But use it with caution, since it bypasses all internal book keeping.
+% \begin{quote}
+%  \verb|\drefvalueof{/med A/mice race}|
+% \end{quote}
 %
-% \DescribeMacro{\drefref}
+% \DescribeMacro{\drefref\{\meta{name}\}}
 %
 % This is complement of \cmd{\drefvalueof}, it does \emph{only} the book keeping for a key (marking it as referenced etc.) So it might be used to compensate the usage of its bad sibling.
+% \begin{quote}
+%  \verb|\drefref{/med A/mice race}|
+% \end{quote}
 %
-% \DescribeMacro{\drefsethelp}
-% \DescribeMacro{\drefhelp}
+% \DescribeMacro{[ignoremissing]}
+% \DescribeMacro{[defaultvalue=1.0]}
+% This two package options influence the behaviour regarding to unknown
+% keys. With \verb|ignoremissing| each missing symbolic datapoint is replaced by the defaultvalue. This behaviour might be useful, when you use the .aux file, where the unknown keys are noted to extract data points from a third source (e.g. database, wikidata, etc). In the future a secondary tool will be provided to resolve those references.
+%
+% \DescribeMacro{\drefsethelp\{\meta{pattern}\}\{\meta{text}\}}
+% \DescribeMacro{\drefhelp\{\meta{name}\}}
 %
 % \textsf{dataref} comes with a simple method for defining documentation for data points. This help for example be used to communicate what is the concrete semantiv of the data point. This is of special interest when writter and data gatherer are not the same person. \cmd{\drefsethelp} takes two arguments: first a regular expression that matches the symbolic data point, second the help text.
 %
@@ -146,23 +161,200 @@
 %  \verb|\drefhelp{/med A/mice race}|
 % \end{quote}
 %
-% \DescribeMacro{\drefcalc}
-% \newcommand{\D}[1]{data("#1")}
-% \drefcalc{\D{/med A/recovered}/\D{/med A/mice count} * 100.0}
-% \DescribeMacro{\dreflet}
-% \DescribeMacro{\drefformat}
-% \DescribeMacro{\drefprojection}
-% \DescribeMacro{\drefrow}
-%
+% \DescribeMacro{\drefcalc[\meta{lets}]\{\meta{expr}\}[\meta{format}]}
+% 
+% The \cmd{\drefcalc} command is the core function of calculating with
+% data points. It is based on the pgfmath engine. It uses the required
+% argument as an mathematical expression, but has additional features,
+% that can be used.
+% 
+% \begin{quote}
+%  \verb|\drefcalc{(4+7)/12 * 100}| $\Rightarrow$ \drefcalc{(4+7)/12 * 100}
+% \end{quote}
+% 
+% \noindent It adds support for the \texttt{data} function within pgfmath, that
+% references symbolic data points. The keyname has to be in double
+% quotes to indicate a string, but you can easily define an appropriate
+% macro, that abstracts from \verb|data("")|.
+% 
+% 
+% \begin{quote}
+%  \begin{verbatim}\drefcalc{data("/control group/recovered") /
+%      data("/control group/mice count")}\end{verbatim} 
+%    $\Rightarrow$ \drefcalc{data("/control group/recovered") / data("/control group/mice count")}\\
+%  \verb|\newcommand{\cg}[1]{data("/control group/#1")}|\newcommand{\cg}[1]{data("/control group/#1")}\\
+%  \verb|\drefcalc{\cg{recovered}/\cg{mice count}}| $\Rightarrow$ \drefcalc{\cg{recovered}/\cg{mice count}}
+% \end{quote}
+% 
+% \noindent The first optional argument lets you define constants within pgfmath
+% (zero arity functions, that can be called without parenthesis). Those
+% bindings are only valid for the current \cmd{\datarefcalc} call.
+% 
+% \begin{quote}
+%  \verb|\drefcalc[A=\cg{recovered},B=12*20]{B/A}| $\Rightarrow$ \drefcalc[A=data("/control group/recovered"),B=12*20]{B/A}\\
+%  \verb|\drefcalc[X=100]{30/X}| $\Rightarrow$ \drefcalc[X=100]{30/X}
+% \end{quote}
+% 
+% \noindent The second optional argument, that appears after the required argument does define the pgfmath's \texttt{number format}.
+% \begin{quote}
+%  \verb|\drefcalc{1/3}[precision=5,fixed]| $\Rightarrow$ \drefcalc{1/3}[fixed,precision=5]
+% \end{quote}
+% 
+% \DescribeMacro{\drefcalc*}
+% \DescribeMacro{\drefresult}
+% \DescribeMacro{\drefformat\{\meta{number}\}}
+% 
+% \noindent When you get confused of the which optional argument does
+% what, just think of a pipe. First you define bindings, then you
+% calculate, then you emit stuff. When drefcalc is called with an star
+% argument, it does not print the result, but does only set
+% \cmd{\drefresult}. \cmd{\drefformat} is used to format a number.
+% 
+% \begin{quote}
+%  \verb|\drefcalc*{1/3} ABC: \drefresult| $\Rightarrow$ \drefcalc*{1/3} ABC: \drefresult\\
+%  \verb|\drefformat[fixed,precision=1]{\drefresult}|$\Rightarrow$ \drefformat[fixed,precision=1]{\drefresult}\\
+%  \verb|\drefformat[sci]{100000}| $\Rightarrow$ \drefformat[sci]{100000}
+% \end{quote}
+% 
+% \DescribeMacro{\dreflet\{\meta{lets}\}}
+% 
+% The bindings for \cmd{\drefcalc} are only local to that macro
+% call. Defining a binding for the current group can be done with
+% \cmd{\dreflet}.
+% 
+% \begin{quote}
+%   \verb|\newcommand{\cg}[1]{data("/control group/#1")}|\newcommand{\cg}[1]{data("/control group/#1")}\\
+%   \verb|\dreflet{percent=data("/med A/mice count")/100}|\dreflet{percent=data("/med A/mice count")/100}\\
+% 
+%   The result cleary shows that a lorem ipsum kills\\
+%   \verb|\drefcalc{\cg{dead after 24h}/percent}| percent within 24
+%   and \verb|\drefcalc{\cg{dead after 28h}/percent}| percent within 48 hours.
+% 
+%   The result cleary shows that a lorem ipsum kills
+%   \drefcalc{\cg{dead after 24h}/percent} percent within 24
+%   and \drefcalc{\cg{dead after 48h}/percent} percent within 48 hours.
+% \end{quote}
+% 
+% \DescribeMacro{\drefprojection\{\meta{from}\}\{\meta{to}\}\{\meta{projection}\}}
+% 
+% Sometimes one or multiple sets of data have to projected/mixed into a
+% new set of data, that is fully depended on those values. This can be
+% done with \drefprojection. It projects one data set (subdirectoy) into
+% another one. within the projection three different operations are
+% possible: \cmd{\id}, \cmd{\rename} and \cmd{calc}.
+% 
+% \drefprojection{/control group}{/projection}{
+%       \id{mice race} % identity function
+%       \rename{mice count}{count} % renaming of points
+%       \calc{data("/dead after 24h")+data("/dead after 48h")}{died}
+% }
+% 
+% \begin{quote}
+%   \begin{verbatim}\drefprojection{/control group}{/projection}{
+%       \id{mice race} % identity function
+%       \rename{mice count}{count} % renaming of points
+%       \calc{data("/dead after 24h")+data("/dead after 48h")}{died}
+%     }\end{verbatim}
+% 
+%   \verb|\dref{/projection/died}| $\Rightarrow$ \dref{/projection/died}\\
+%   \verb|\dref{/projection/mice race}| $\Rightarrow$ \dref{/projection/mice race}\\
+%   \verb|\dref{/projection/count}| $\Rightarrow$ \dref{/projection/count}
+% \end{quote}
+% 
+% \DescribeMacro{\drefrow\{\meta{list}\}\{\meta{macro}\}}
+% \DescribeMacro{\drefrow*}
+% 
+% 
+% Often different columns in a table have to be obtained from your data
+% points. Often those rows and columns are similar. Generating parts of
+% tables within \LaTeX is very tricky, so \textsf{dataref} provides you
+% with \cmd{\drefrow}. This macro iterates over a comma-separated list
+% of values and fills out a macro which is interpreted as an symbolic
+% data point. The entries are seperated with \& and printed. In the
+% starred variant the resulting text is not interpreted as symbolic
+% name, but as a macro.
+% 
+% The second argument is the macro, and can have two macro
+% replacements. The first replacement \verb|#1| is the value of the list
+% item, the second \verb|#2| is the index in the list.
+% 
+% \begin{verbatim}\begin{tabular}{lccc}
+%   Group & $<$ 24h & $<$48h & recovered\\ \hline
+%   Control Group & \drefrow{dead after 24h,dead after 48h,recovered}%
+%                           {/control group/#1}\\
+%   Medicament A & \drefrow{dead after 24h,dead after 48h,recovered}%
+%                           {/med A/#1}\\
+%   Starred Variant & \drefrow*{B,C,D}{\#1=#1,\#2=#2}\\
+% \end{tabular}
+% \end{verbatim}
+% 
+% 
+% \vspace{1em}\begin{tabular}{lccc}
+%   Group & $<$ 24h & $<$48h & recovered\\ \hline
+%   Control Group & \drefrow{dead after 24h,dead after 48h,recovered}%
+%                           {/control group/#1}\\
+%   Medicament A & \drefrow{dead after 24h,dead after 48h,recovered}%
+%                           {/med A/#1}\\\hline
+%   Starred Variant & \drefrow*{B,C,D}{\#1=#1,\#2=#2}\\
+% \end{tabular}\vspace{1em}
+% 
+% \DescribeMacro{\drefassert\{\meta{expr}\}}
+% \DescribeMacro{[noassert]}
+% 
+% Sometimes the underlying data changes, while you are writing. But what
+% when your prose text relies on certain characteristics of the data (At
+% least this should be goal!). \cmd{\drefassert} uses a pgfmath
+% expression that evaluates to \verb|true| or \verb|false|. When the
+% assertion holds (\verb|true|) nothing happens, only a terminal message
+% is printed. When it does not hold (\verb|false|) the compilation is aborted.
+% 
+% \begin{verbatim}\drefassert{data("/control group/mice count") > 30} 
+% Of the more than thirty infected mice...
+% \end{verbatim}
+% 
+% The \textbf{noassert} package options disables the latex abortion. In
+% that case only a terminal message is printed.
+% 
+% \DescribeMacro{[annotate=none]}
+% \DescribeMacro{[annotate=footnote]}
+% \DescribeMacro{[annotate=pdfcomment]}
+% \DescribeMacro{\drefannotate\{\meta{style}\}}
+% 
+% 
+% While writing a document it is desirable to know, what key is used,
+% while writing the text and generating the document. Therefore
+% \textsf{dataref} provides the possibility to annotate values. The
+% default package option \textbf{none} disables this kind of
+% annotation. For the \textbf{pdfcomment} option uses pdf
+% annotations. Be aware that those annotations work only on a few
+% selected PDF readers properly. \cmd{\drefannotate} sets the annoation
+% style for the current group.
+% 
+% \begin{quote}
+%   \verb|\drefannotate{none}|\drefannotate{none}\\
+%   \dref{/control group/mice race}, \dref{/control group/mice count}, \drefcalc{100/3}
+% \end{quote}
+% 
+% \begin{quote}
+%   \verb|\drefannotate{footnote}|\drefannotate{footnote}\\
+%   \dref{/control group/mice race}, \dref{/control group/mice count}, \drefcalc{100/3}
+% \end{quote}
+% 
+% \begin{quote}
+%   \verb|\drefannotate{pdfcomment}|\drefannotate{pdfcomment}\\
+%   \dref{/control group/mice race}, \dref{/control group/mice count}, \drefcalc{100/3}
+% \end{quote}
+% 
 % \DescribeMacro{\drefusagereport}
-%
-%
-% \DescribeMacro{\drefassert}
-
-%
-% \drefusagereport
-%
-%
+% \DescribeMacro{[usagereport]}
+% 
+% With the \textbf{usagereport} package option enabled,
+% \cmd{\drefusagereport} generates a usagereport of all referenced
+% keys. The usagereport groups the keys by the help texts.
+% 
+% \section*{Datagraphy}
+%   \drefusagereport
+% \pagebreak
 % \StopEventually{}
 %
 % \section{Implementation}
@@ -192,10 +384,6 @@
 \RequirePackage{etoolbox}
 \RequirePackage{etextools}
 %    \end{macrocode}
-% Options for this package:
-% datapath: were is the data located
-% aliaspath: were to put aliases
-%
 %    \begin{macrocode}
 \SetupKeyvalOptions{
   family=dref,
@@ -206,6 +394,7 @@
 \DeclareStringOption[none]{annotate}
 \DeclareBoolOption{usagereport}
 \DeclareBoolOption{ignoremissing}
+\DeclareBoolOption{noassert}
 \ProcessKeyvalOptions*
 %    \end{macrocode}
 %
@@ -244,14 +433,8 @@
 \long\def\dref@unexpandable#1{%
   \def\drefcurrentkey{\dref@datapath#1}%
   \pgfkeysifdefined{\drefcurrentkey}{%
-%    \end{macrocode}
-% Key is defined, mark it as found
-%    \begin{macrocode}
     \immediate\write\@auxout{\noexpand\dref@found{\drefcurrentkey}{\thepage}}%
   }{%
-%    \end{macrocode}
-% Key is undefined, write an warning and output to .aux file
-%    \begin{macrocode}
     \immediate\write\@auxout{\noexpand\dref@notfound{\drefcurrentkey}{\thepage}}%
     \ifdref@ignoremissing%
        \typeout{Dref warning: undefined key `\drefcurrentkey'}%
@@ -271,7 +454,6 @@
 %    \begin{macrocode}
 \DeclareDocumentCommand{\dref}{o m}{%
   \dref@unexpandable{#2}%
-  \dref@mkannotate{#2}%
   \IfNoValueTF {#1}{%
     \gdef\dref@dref@output{\dref@expandable{#2}}%
   }{%
@@ -280,13 +462,8 @@
       \dref@format[#1]{\pgfmathresult}%
     }%
   }%
-  \ifdref@usagereport%
-    \ifdef{\hyperlink}{%
-      \expandafter\hyperlink\expandafter{\dref@datapath#2}{\dref@dref@output}%
-    }{\dref@dref@output}%
-  \else%
-    \dref@dref@output%
-  \fi%
+  \dref@dref@output%
+  \dref@mkannotate{#2}%
 }
 %    \end{macrocode}
 % \end{macro}
@@ -312,7 +489,6 @@
 %
 %
 % \begin{macro}{\dref@help@match}
-%% Help System
 %    \begin{macrocode}
 \newcommand{\dref@help@match}[2]{%
   \ifstrmatch{#1}{#2}%
@@ -356,30 +532,18 @@
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\dref@notfound}
+% \begin{macro}{\dref@referenced}
 %    \begin{macrocode}
 \long\def\dref@notfound#1#2{
   \ifdref@usagereport%
     \dref@usagereport@notfound{#1}{#2}%
   \else\relax\fi%
 }
-%    \end{macrocode}
-% \end{macro}
-%
-%
-% \begin{macro}{\dref@found}
-%    \begin{macrocode}
 \long\def\dref@found#1#2{
   \ifdref@usagereport%
     \dref@usagereport@found{#1}{#2}%
   \else\relax\fi%
 }
-%    \end{macrocode}
-% \end{macro}
-%
-%
-% \begin{macro}{\dref@referenced}
-%    \begin{macrocode}
 \long\def\dref@referenced#1#2{
   \ifdref@usagereport%
     \dref@usagereport@referenced{#1}{#2}%
@@ -406,7 +570,7 @@
 }
 %    \end{macrocode}
 % \end{macro}
-%
+% \begin{macro}{\drefcalc}
 %    \begin{macrocode}
 \DeclareDocumentCommand{\dref@calc}{o m}{%
   \IfNoValueTF {#1}{}{%
@@ -414,53 +578,36 @@
   }%
   \pgfmathparse{#2}%
 }
+\def\drefresult{0.0}
 \DeclareDocumentCommand{\drefcalc}{s O{} m O{}}{%
-%    \end{macrocode}
-% 1: do print?
-% 2: formatting options
-% 3: Binding
-% 4: Expression
-%    \begin{macrocode}
   \begingroup%
   \dref@calc[#2]{#3}%
+  \xdef\drefresult{\pgfmathresult}%
   \IfBooleanTF {#1} {}% Wit star do not print anything
                {%
-                 \dref@mkannotate{#3}%
                  \dref@format[#4]{\pgfmathresult}%
+                 \dref@mkannotate{#3}%
                }%
   \endgroup%
 }
 %    \end{macrocode}
+% \end{macro}
 %
-% \begin{macro}{\dref@format}
+% \begin{macro}{\drefformat}
 %    \begin{macrocode}
 \newcommand{\dref@format}[2][]{%
   \pgfmathprintnumber[#1]{#2}%
 }
-%    \end{macrocode}
-% \end{macro}
-%
-%    \begin{macrocode}
 \DeclareDocumentCommand{\drefformat}{O{} m}{%
-%    \end{macrocode}
-% 1: do print??
-% 2: formatting options
-% 3: Binding
-% 4: Expression
-%    \begin{macrocode}
   \dref@format[#1]{#2}%
 }
 %    \end{macrocode}
+% \end{macro}
+
 %
-%
-%
-% \begin{macro}{\dref@data@math@prefix}
+% \begin{macro}{data()}
 %    \begin{macrocode}
 \gdef\dref@data@math@prefix{}
-%    \end{macrocode}
-% \end{macro}
-%
-%    \begin{macrocode}
 \pgfmathdeclarefunction{data}{1}{%
         \begingroup%
                 \dref@unexpandable{\dref@data@math@prefix#1}%
@@ -484,36 +631,14 @@
      \endgroup%
 }
 %    \end{macrocode}
-%
-% \begin{macro}{\dref@beginswith}
-%    \begin{macrocode}
-\def\dref@beginswith#1#2{%
-  \long\def\firstoftwo##1##2{##1}%
-  \long\def\secondoftwo##1##2{##2}%
-  \def\doifbegins##1#2##2\blanktest{%
-    \if\relax\detokenize{##1}\relax%
-    \expandafter\firstoftwo%
-    \else%
-    \expandafter\secondoftwo%
-    \fi%
-  }%
-  \if\relax\detokenize{\deblank{#1}}\relax%
-    \expandafter\firstoftwo%
-  \else%
-    \expandafter\secondoftwo%
-  \fi%
-    {\secondoftwo}%
-    {\doifbegins#1#2\blanktest}%
-}
-%    \end{macrocode}
 % \end{macro}
 %
-%    \begin{macrocode}
-\newtoks\dref@toks
-%    \end{macrocode}
-%
+
 % \begin{macro}{\dref@makerow}
 %    \begin{macrocode}
+
+\newtoks\dref@toks
+
 \newcommand{\dref@makerow}[2]{%
   {\global\dref@toks={}%
     \@tempcnta=\z@%
@@ -544,56 +669,26 @@
 %    \end{macrocode}
 % \end{macro}
 %
+% \begin{macro}{\dref@mkannotate}
 %    \begin{macrocode}
-\expandafter\ifstrequal\expandafter{\dref@annotate}{marginnote}{
-   \RequirePackage{marginnote}
-%    \end{macrocode}
-% Fix for tow column mode from
-% http://www.komascript.de/node/985 
-%    \begin{macrocode}
-   \g@addto@macro\@mn@margintest{%
-     \if@twocolumn%
-       \ifx\@mn@currxpos\relax% don't know which margin use normal one
-         \normalmarginpar%
-       \else\ifx\@mn@currxpos\@empty% don't know which margin use normal one
-           \normalmarginpar%
-         \else%
-           \if@tempswa% use \oddsidemargin for tests
-             \ifdim\@mn@currxpos > \dimexpr \oddsidemargin+1in+\columnwidth\relax%
-               \normalmarginpar% right column --&gt; right margin
-             \else%
-               \reversemarginpar% left column --&gt; left margin
-             \fi%
-           \else% use \evensidemargin for tests
-             \ifdim\@mn@currxpos > \dimexpr \evensidemargin+1in+\columnwidth\relax%
-               \reversemarginpar% right column --&gt; right margin
-             \else%
-               \normalmarginpar% left column --&gt; left margin
-             \fi%
-           \fi%
-         \fi%
-       \fi%
-     \fi%
-   }
-}{}
+
 \expandafter\ifstrequal\expandafter{\dref@annotate}{pdfcomment}{
   \RequirePackage{pdfcomment}
 }
-%    \end{macrocode}
-%
-% \begin{macro}{\dref@mkannotate}
-%    \begin{macrocode}
+
 \newcommand{\dref@mkannotate}[1]{%
   \expandafter\ifstrequal\expandafter{\dref@annotate}{none}%
     {\relax}%
-    {\expandafter\ifstrequal\expandafter{\dref@annotate}{marginnote}
-      {\marginnote{#1}}%
-      {\expandafter\ifstrequal\expandafter{\dref@annotate}{footnote}%
-        {\footnote{#1}}%
-        {\expandafter\ifstrequal\expandafter{\dref@annotate}{pdfcomment}%
-          {\pdfcomment[opacity=0.4,voffset=2ex]{#1}}%
-          {\dref@error{Value for annotate not supported: '\dref@annotate'}%
-          }}}}}%
+    {\expandafter\ifstrequal\expandafter{\dref@annotate}{footnote}%
+      {\footnote{#1}}%
+      {\expandafter\ifstrequal\expandafter{\dref@annotate}{pdfcomment}%
+        {\pdfcomment[opacity=0.4,voffset=2ex]{#1}}%
+        {\dref@error{Value for annotate not supported: '\dref@annotate'}%
+          }}}}%
+
+\newcommand{\drefannotate}[1]{%
+  \renewcommand{\dref@annotate}{#1}%
+}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -606,31 +701,15 @@
 \fi
 %    \end{macrocode}
 %
-% \begin{macro}{\dref@usagereport@notfound}
-%    \begin{macrocode}
-\newcommand{\dref@usagereport@notfound}[2]{}
-%    \end{macrocode}
-% \end{macro}
-%
-%
-% \begin{macro}{\dref@usagereport@found}
-%    \begin{macrocode}
-\newcommand{\dref@usagereport@found}[2]{}
-%    \end{macrocode}
-% \end{macro}
-%
-%    \begin{macrocode}
-\csdef{pgfdat@usagereport@keys}{}
-\csdef{pgfdat@usagereport@matchedkeys}{}
-%    \end{macrocode}
-%
 % \begin{macro}{\dref@usagereport@referenced}
 %    \begin{macrocode}
+\newcommand{\dref@usagereport@notfound}[2]{}
+\newcommand{\dref@usagereport@found}[2]{}
+
+\csdef{pgfdat@usagereport@keys}{}
+\csdef{pgfdat@usagereport@matchedkeys}{}
+
 \newcommand{\dref@usagereport@referenced}[2]{
-%    \end{macrocode}
-% 1 == key
-% 2 == thepage
-%    \begin{macrocode}
   \ifinlistcs{#2}{dref@usagereport@referenced@#1}{}{
     \listcsgadd{dref@usagereport@referenced@#1}{#2}
   }
@@ -641,12 +720,10 @@
 %    \end{macrocode}
 % \end{macro}
 %
-%    \begin{macrocode}
-\expandafter\def\expandafter\dref@usagereport@strippath@\dref@datapath#1\blanktest{#1}
-%    \end{macrocode}
-%
 % \begin{macro}{\dref@usagereport@strippath}
 %    \begin{macrocode}
+\expandafter\def\expandafter\dref@usagereport@strippath@\dref@datapath#1\blanktest{#1}
+
 \newcommand{\dref@usagereport@strippath}[1]{%
   \expandafter\ifstrmatch\expandafter{\expandafter^\dref@datapath.*$}{#1}%
     {\dref@usagereport@strippath@#1\blanktest}%
@@ -748,7 +825,6 @@
 %
 %
 % \begin{macro}{\drefassert}
-%% Assert
 %    \begin{macrocode}
 \newcommand{\drefassert}[1]{%
   \begingroup%
@@ -756,16 +832,17 @@
     \expandafter\ifstrequal\expandafter{\result}{1.0}{%
       \typeout{Assertion holds: #1}%
     }{%
-      \dref@error{Assertion failed: #1}%
+      \ifdref@noassert%
+        \typeout{Assertion failed: #1}%
+      \else%
+        \dref@error{Assertion failed: #1}%
+      \fi%
    }%
   \endgroup%
 }
 %    \end{macrocode}
 % \end{macro}
 %
-%    \begin{macrocode}
-\endinput
-%    \end{macrocode}
 %
 % \iffalse
 %</package>
