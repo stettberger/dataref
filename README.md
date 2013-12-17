@@ -44,3 +44,8 @@ Referencing them with \dref, \drefcalc, \drefassert
     \dref{/count}  => 42
     \drefcalc{data("/abc") / data("/count")} => 0.55
     \drefassert{data("/abc") < data("/count")}
+
+Getting the latest version
+==========================
+
+dataref is hosted at github: https://github.com/stettberger/dataref
