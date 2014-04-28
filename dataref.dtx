@@ -783,8 +783,11 @@
       }%
     }{}%
   }%
-  \begin{longtable}{lll}\toprule%
+  \begin{longtable}{@{\extracolsep{\fill}}lll@{}}\toprule%
     & Page(s) & Value \\ \midrule
+    \endhead
+    \bottomrule%
+    \endfoot
   \dolistcsloop{dref@usagereport@keys}%
   \end{longtable}%
   \endgroup%
@@ -801,9 +804,11 @@
       \dref@usagereport@keyheader{##1}%
     }%
   }%
-  \begin{longtable}{lll}\toprule%
+  \begin{longtable}{@{\extracolsep{\fill}}lll@{}}\toprule%
     Keys without Help  & Page(s) & Value \\\midrule
     \endhead
+    \bottomrule
+    \endfoot
     \dolistcsloop{dref@usagereport@keys}%
   \end{longtable}%
 }
