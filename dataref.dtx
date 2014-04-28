@@ -348,10 +348,12 @@
 % 
 % \DescribeMacro{\drefusagereport}
 % \DescribeMacro{[usagereport]}
+% \DescribeMacro{[refall]}
 % 
 % With the \textbf{usagereport} package option enabled,
 % \cmd{\drefusagereport} generates a usagereport of all referenced
-% keys. The usage report groups the keys by the help texts.
+% keys. The usage report groups the keys by the help texts. If the
+% refall package option is given, all keys are marked as referenced.
 % 
 % \section*{Datagraphy}
 %   \drefusagereport
@@ -384,6 +386,8 @@
 \RequirePackage{xparse}
 \RequirePackage{etoolbox}
 \RequirePackage{etextools}
+\RequirePackage{xcolor}
+
 %    \end{macrocode}
 %    \begin{macrocode}
 \SetupKeyvalOptions{
@@ -394,6 +398,7 @@
 \DeclareStringOption[1]{defaultvalue}
 \DeclareStringOption[none]{annotate}
 \DeclareBoolOption{usagereport}
+\DeclareBoolOption{refall}
 \DeclareBoolOption{ignoremissing}
 \DeclareBoolOption{noassert}
 \ProcessKeyvalOptions*
@@ -403,7 +408,12 @@
 %    \begin{macrocode}
 \newcommand{\dref@set}[2]{%
     \pgfkeys@temptoks{#2}%
-    \expandafter\xdef\csname pgfk@\dref@datapath#1\endcsname{\the\pgfkeys@temptoks}%
+    \expandafter\xdef\csname
+    pgfk@\dref@datapath#1\endcsname{\the\pgfkeys@temptoks}%
+    \ifdref@refall%
+      \expandafter\dref@found\expandafter{\dref@datapath#1}{0}
+      \expandafter\dref@referenced\expandafter{\dref@datapath#1}{0}%
+    \fi%
 }
 %    \end{macrocode}
 % \end{macro}
@@ -754,7 +764,7 @@
     {\hypertarget{#1}{\dref@usagereport@strippath{#1}}}%
     {\dref@usagereport@strippath{#1}}}%
   & \dref@usagereport@formatreferencelist{#1}%
-  & \pgfkeysifdefined{#1}{\pgfkeysvalueof{#1}}{\textbf{\red{undefined}}} \\%
+  & \pgfkeysifdefined{#1}{\pgfkeysvalueof{#1}}{\textbf{\color{red}undefined}} \\%
 }
 %    \end{macrocode}
 % \end{macro}
