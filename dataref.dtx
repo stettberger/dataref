@@ -27,8 +27,8 @@
 \ProvidesFile{dataref.dtx}
 %</driver>
 %<package>\NeedsTeXFormat{LaTeX2e}[1999/12/01]
-%<package>\ProvidesPackage{dref}
-%<package> [2013/12/06 v0.1 dref]
+%<package>\ProvidesPackage{dataref}
+%<package> [2013/12/06 v0.1 dataref]
 %
 %<*driver>
 \documentclass{ltxdoc}
@@ -384,8 +384,10 @@
 \RequirePackage{pgf}
 \RequirePackage{kvoptions}
 \RequirePackage{xparse}
-\RequirePackage{etoolbox}
-\RequirePackage{etextools}
+\usepackage{etoolbox}
+\let\origforlistloop\forlistloop
+\usepackage{etextools}
+\let\forlistloop\origforlistloop
 \RequirePackage{xcolor}
 
 %    \end{macrocode}
