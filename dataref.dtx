@@ -434,7 +434,11 @@
   \pgfkeysifdefined{\dref@datapath#1}{%
     \pgfkeysvalueof{\dref@datapath#1}%
   }{%
-    \dref@defaultvalue%
+    \ifdref@ignoremissing%
+       \dref@defaultvalue%
+    \else%
+       \typeout{Dref error: undefined key `#1'}\QUIT%
+    \fi%
   }%
 }
 %    \end{macrocode}
