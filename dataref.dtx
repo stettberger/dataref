@@ -101,35 +101,64 @@
 %
 % \section{Introduction}
 %
-% Writing scientific texts is a craft. It is the craft of communicating your results to your colleagues and to the curious world public. Often your conclusions are based upon facts and numbers that you gathered during your research for the specific topic. You might have done many experiments and produced lot of data. The craft of writing is to guide your reader through a narrative that is based upon that data. But there may be many versions of that data. Perhaps you found a problem in your experiment, while already writing, that forces you back into the laboratory. After a while, the moon has done its circle many times, you return from that dark place and your methodology has improved as significantly as your data has. But now you have to rewrite that parts of the data that reference the old data points.
+% Writing scientific texts is a craft. It is the craft of communicating your results to your
+% colleagues and to the curious world public. Often your conclusions are based upon facts and
+% numbers that you gathered during your research for the specific topic. You might have done many
+% experiments and produced lot of data. The craft of writing is to guide your reader through a
+% narrative that is based upon that data. But there may be many versions of that data. Perhaps you
+% found a problem in your experiment, while already writing, that forces you back into the
+% laboratory. After a while, the moon has done its circle many times, you return from that dark
+% place and your methodology has improved as significantly as your data has. But now you have to
+% rewrite that parts of the data that reference the old data points.
 %
-% The \textsf{dataref} is here to help you with managing your data points. It provides you with macro style keys that represent symbolic names for your data points. You can reference those symbolic names with \cmd{\dref}, use them in calculations to have always up-to-date percentage values, define projections between sets of data points and document them. \textsf{dataref} also introduces the notion of assertions (\cmd{\drefassert}) for your results to ensure that your prosa text references fit the underlying data.
+% The \textsf{dataref} is here to help you with managing your data points. It provides you with
+% macro style keys that represent symbolic names for your data points. You can reference those
+% symbolic names with \cmd{\dref}, use them in calculations to have always up-to-date percentage
+% values, define projections between sets of data points and document them. \textsf{dataref} also
+% introduces the notion of assertions (\cmd{\drefassert}) for your results to ensure that your prosa
+% text references fit the underlying data.
 %
 % \section{Usage}
 %
-% The \textsf{dataref} package heavily uses \textsf{pgfkeys} and \textsf{pgfmath} to perform storage and operations upon data points. See \texttt{texdoc pgfmanual} for further informations about those topics.
+% The \textsf{dataref} package heavily uses \textsf{pgfkeys} and \textsf{pgfmath} to perform storage
+% and operations upon data points. See \texttt{texdoc pgfmanual} for further information about those
+% topics.
 %
 % \DescribeMacro{\drefset\{\meta{name}\}\{\meta{value}\}}
 %
-% The \cmd{\drefset} command is used to define the symbolic data points. The first argument is the symbolic name, the second argument is the value. The value can be a number, but it can also be arbitrary text. The key may contain virtually all characters, including spaces and slashes. It is good practice to use a hierarchy to structure you data point names.
+% The \cmd{\drefset} command is used to define the symbolic data points. The first argument is the
+% symbolic name, the second argument is the value. The value can be a number, but it can also be
+% arbitrary text. The key may contain virtually all characters, including spaces and slashes. It is
+% good practice to use a hierarchy to structure you data point names.
 %
 % \lstinputlisting[language=tex, firstline=5, lastline=15,basicstyle=\footnotesize,frame=single]{datapoints.tex}
 %
-% The code snippet, which is best stored in an external file, and which might be auto-generated, is best read with \cmd{\input}. It defines 10 symbolic names, that are partitioned into two "directories" (\texttt{control group} and \texttt{medicament A}).
+% The code snippet, which is best stored in an external file, and which might be auto-generated, is
+% best read with \cmd{\input}. It defines 10 symbolic names, that are partitioned into two
+% "directories" (\texttt{control group} and \texttt{medicament A}).
 %
-% \DescribeMacro{\dref\{\meta{name}\}}
+% \DescribeMacro{\dref*\{\meta{name}\}}
+% \DescribeMacro{\dref[\meta{format}]\{\meta{name}\}}
+
 %
-% This macro is used to reference a single symbolic data point. The value stored in that datapoint is inserted into the text. \cmd{\dref} additonally marks the data point as used. It will then appear in the dref usage report. For undefined keys the default behaviour is to abort the compilation. But the package option \texttt{ignoremissing} just outputs a warning. All referenced/missing/found datapoints are noted in the aux file.
+% This macro is used to reference a single symbolic data point. The value stored in that datapoint
+% is inserted into the text. \cmd{\dref} additionally marks the data point as used. It will then
+% appear in the dref usage report. For undefined keys the default behaviour is to abort the
+% compilation. But the package option \texttt{ignoremissing} just outputs a warning. All
+% referenced/missing/found datapoints are noted in the aux file.
 %
 % \vspace{1em}\noindent\begin{tabular}{ll}\toprule
 % Macro & Expansion \\
 % \midrule
-% \cmd{\dref\{/control group/mice race\}} & \dref{/control group/mice race} \\
-% \cmd{\dref\{/control group/mice count\}} & \dref{/control group/mice count} \\
+% \cmd{\dref*\{/control group/mice race\}} & \dref*{/control group/mice race} \\
+% \cmd{\dref*\{/control group/mice count\}} & \dref*{/control group/mice count} \\
 % \cmd{\dref[sci,precision=2,zerofill=true]\{/med A/recovered\}} & \dref[sci,precision=2,zerofill=true]{/med A/recovered} \\ \bottomrule
 % \end{tabular}\vspace{1em}
 %
-% \cmd{\dref} additionally takes an optional argument. This argument is interpreted as \texttt{/pgf/number format/} argument. See the pgf/tikz manual for more information. Only if the optional argument is present the value is printed as a number, so \verb|[]| is a useful option, since it enforces printing it as a number with the proper number format applied. Be aware that \cmd{\dref} is \textbf{not} expandable.
+% \cmd{\dref} additionally takes an optional argument. This argument is interpreted as
+% \texttt{/pgf/number format/} argument. See the pgf/tikz manual for more information. Only in the
+% unstarred version this macro parses the value as a number. Be aware that
+% \cmd{\dref} is \textbf{not} expandable.
 %
 % \DescribeMacro{\drefvalueof\{\meta{name}\}}
 %
@@ -163,12 +192,11 @@
 %  \verb|\drefhelp{/med A/mice race}|
 % \end{quote}
 %
-% \DescribeMacro{\drefcalc[\meta{lets}]\{\meta{expr}\}[\meta{format}]}
+% \DescribeMacro{\drefcalc[\meta{format}]\{\meta{expr}\}}
 % 
-% The \cmd{\drefcalc} command is the core function of calculating with
-% data points. It is based on the pgfmath engine. It uses the required
-% argument as a mathematical expression, but has additional features,
-% that can be used.
+% The \cmd{\drefcalc} command is the core function of calculating with data points. It is based on
+% the pgfmath engine. It uses the required argument as a mathematical expression, but has additional
+% features, that can be used.
 % 
 % \begin{quote}
 %  \verb|\drefcalc{(4+7)/12 * 100}| $\Rightarrow$ \drefcalc{(4+7)/12 * 100}
@@ -188,38 +216,56 @@
 %  \verb|\drefcalc{\cg{recovered}/\cg{mice count}}| $\Rightarrow$ \drefcalc{\cg{recovered}/\cg{mice count}}
 % \end{quote}
 % 
-% \noindent The first optional argument lets you define constants within pgfmath
-% (zero arity functions, that can be called without parenthesis). Those
-% bindings are only valid for the current \cmd{\datarefcalc} call.
-% 
+% \noindent The optional argument lets you give a number format, which is used for printing the
+% result number (\verb|/pgf/number format|).
+%
 % \begin{quote}
-%  \verb|\drefcalc[A=\cg{recovered},B=12*20]{B/A}| $\Rightarrow$ \drefcalc[A=data("/control group/recovered"),B=12*20]{B/A}\\
-%  \verb|\drefcalc[X=100]{30/X}| $\Rightarrow$ \drefcalc[X=100]{30/X}
+%  \verb|\drefcalc[precision=5,fixed]{1/3}| $\Rightarrow$ \drefcalc[fixed,precision=5]{1/3}
 % \end{quote}
-% 
-% \noindent The second optional argument, that appears after the required argument defines the pgfmath's \texttt{number format}.
+%
+% \cmd{\drefcalc} works as well in a \cmd{/pgf/fpu} environment or a normal one. The FPU feature of
+% pgfmath is used to handle large numbers, which may occur often when handling experiment data
+% points. 
+%
 % \begin{quote}
-%  \verb|\drefcalc{1/3}[precision=5,fixed]| $\Rightarrow$ \drefcalc{1/3}[fixed,precision=5]
+%  
 % \end{quote}
+% \dreflet{A=123456789,B=987654321, a=12, b=98}
+%
+% \begin{tabular}{lrr}
+% \multicolumn{3}{l}{\cmd{\dreflet\{A=123456789, B=987654321, a=12, b=98\}}} \\
+%\toprule
+% Macro & Inserted Text & \cmd{\drefresult} \\\midrule
+% \verb|\drefcalc[/pgf/fpu]{A/B}| & \drefcalc[/pgf/fpu]{A/B} & \drefresult\\
+% \verb|\drefcalc{a/b}| & \drefcalc[]{a/b} & \drefresult \\
+% \verb|\drefcalc*[/pgf/fpu]{A/B}| & \drefcalc*[/pgf/fpu]{A/B} & \drefresult\\
+% \verb|\drefcalc*{a/b}| & \drefcalc*[]{a/b} & \drefresult \\
+% \bottomrule
+% \end{tabular}
+% 
 % 
 % \DescribeMacro{\drefcalc*}
 % \DescribeMacro{\drefresult}
 % \DescribeMacro{\drefformat\{\meta{number}\}}
-% 
-% \noindent When you get confused about the which optional argument does
-% what, just think of a pipe. First you define bindings, then you
-% calculate, then you emit stuff. When drefcalc is called with an star
-% argument, it does not print the result, but only sets
-% \cmd{\drefresult}. \cmd{\drefformat} is used to format a number.
 % 
 % \begin{quote}
 %  \verb|\drefcalc*{1/3} ABC: \drefresult| $\Rightarrow$ \drefcalc*{1/3} ABC: \drefresult\\
 %  \verb|\drefformat[fixed,precision=1]{\drefresult}|$\Rightarrow$ \drefformat[fixed,precision=1]{\drefresult}\\
 %  \verb|\drefformat[sci]{100000}| $\Rightarrow$ \drefformat[sci]{100000}
 % \end{quote}
-% 
+%
+% \DescribeMacro{/dref/let=\{\meta{lets}\}}
 % \DescribeMacro{\dreflet\{\meta{lets}\}}
 % 
+% Since symbolic key names can get long, dataref has the possibility to define variables for use
+% within mathematical expression from other expressions. These "let"-bindings can either be defined
+% locally for a \cmd{\drefcalc} commando with a pgf key or globally with \cmd{\dreflet}.
+%
+% \begin{quote}
+%  \verb|\drefcalc[/dref/let{A=12*20,B=\cg{recovered}}]{A/B}| $\Rightarrow$ \drefcalc[/dref/let={B=data("/control group/recovered"),A=12*20}]{A/B}\\
+%  \verb|\drefcalc[/dref/let={X=100}]{30/X}| $\Rightarrow$ \drefcalc[/dref/let={X=100}]{30/X}
+% \end{quote}
+%
 % The bindings for \cmd{\drefcalc} are only local to that macro
 % call. Defining a binding for the current group can be done with
 % \cmd{\dreflet}.
@@ -259,7 +305,7 @@
 %     }\end{verbatim}
 % 
 %   \verb|\dref{/projection/died}| $\Rightarrow$ \dref{/projection/died}\\
-%   \verb|\dref{/projection/mice race}| $\Rightarrow$ \dref{/projection/mice race}\\
+%   \verb|\dref*{/projection/mice race}| $\Rightarrow$ \dref*{/projection/mice race}\\
 %   \verb|\dref{/projection/count}| $\Rightarrow$ \dref{/projection/count}
 % \end{quote}
 % 
@@ -274,7 +320,7 @@
 % of values and fills out a macro which is interpreted as a symbolic
 % data point. The entries are seperated with \& and printed. In the
 % starred variant the resulting text is not interpreted as symbolic
-% name, but as a macro.
+% name, but as a macro. The symbolic name is expanded with \cmd{\drefvalueof}.
 % 
 % The second argument is the macro, and can have two macro
 % replacements. The first replacement \verb|#1| is the value of the list
@@ -312,6 +358,8 @@
 % \begin{verbatim}\drefassert{data("/control group/mice count") > 30} 
 % Of the more than thirty infected mice...
 % \end{verbatim}
+% \drefassert{data("/control group/mice count") > 30}
+% \begingroup \pgfset{/pgf/fpu} \drefcalc{data("/control group/mice count")} \endgroup
 % 
 % The \textbf{noassert} package options disables the latex abortion. In
 % that case only a warning message is printed on the terminal.
@@ -333,17 +381,17 @@
 % 
 % \begin{quote}
 %   \verb|\drefannotate{none}|\drefannotate{none}\\
-%   \dref{/control group/mice race}, \dref{/control group/mice count}, \drefcalc{100/3}
+%   \dref*{/control group/mice race}, \dref{/control group/mice count}, \drefcalc{100/3}
 % \end{quote}
 % 
 % \begin{quote}
 %   \verb|\drefannotate{footnote}|\drefannotate{footnote}\\
-%   \dref{/control group/mice race}, \dref{/control group/mice count}, \drefcalc{100/3}
+%   \dref*{/control group/mice race}, \dref{/control group/mice count}, \drefcalc{100/3}
 % \end{quote}
 % 
 % \begin{quote}
 %   \verb|\drefannotate{pdfcomment}|\drefannotate{pdfcomment}\\
-%   \dref{/control group/mice race}, \dref{/control group/mice count}, \drefcalc{100/3}
+%   \dref*{/control group/mice race}, \dref{/control group/mice count}, \drefcalc{100/3}
 % \end{quote}
 % 
 % \DescribeMacro{\drefusagereport}
@@ -383,7 +431,7 @@
 % \begin{macrocode}
 \RequirePackage{pgf}
 \RequirePackage{kvoptions}
-\RequirePackage{xparse}
+\usepgflibrary{fpu}
 \usepackage{etoolbox}
 \let\origforlistloop\forlistloop
 \usepackage{etextools}
@@ -408,7 +456,7 @@
 %
 % \begin{macro}{\dref@set}
 %    \begin{macrocode}
-\newcommand{\dref@set}[2]{%
+\def\dref@set#1#2{%
     \pgfkeys@temptoks{#2}%
     \expandafter\xdef\csname
     pgfk@\dref@datapath#1\endcsname{\the\pgfkeys@temptoks}%
@@ -430,14 +478,14 @@
 %
 % \begin{macro}{\dref@expandable}
 %    \begin{macrocode}
-\long\def\dref@expandable#1{%
+\def\dref@expandable#1{%
   \pgfkeysifdefined{\dref@datapath#1}{%
     \pgfkeysvalueof{\dref@datapath#1}%
   }{%
     \ifdref@ignoremissing%
-       \dref@defaultvalue%
+      \dref@defaultvalue%
     \else%
-       \typeout{Dref error: undefined key `#1'}\QUIT%
+      \typeout{Dref error: undefined key `#1'}\QUIT%
     \fi%
   }%
 }
@@ -447,7 +495,7 @@
 %
 % \begin{macro}{\dref@unexpandable}
 %    \begin{macrocode}
-\long\def\dref@unexpandable#1{%
+\def\dref@unexpandable#1{%
   \def\drefcurrentkey{\dref@datapath#1}%
   \pgfkeysifdefined{\drefcurrentkey}{%
     \immediate\write\@auxout{\noexpand\dref@found{\drefcurrentkey}{\thepage}}%
@@ -465,20 +513,31 @@
 %    \end{macrocode}
 % \end{macro}
 %
+% \begin{macro}{\drefifdefined}
+%    \begin{macrocode}
+\newcommand{\drefifdefined}[3]{
+  \def\drefcurrentkey{\dref@datapath#1}%
+  \pgfkeysifdefined{\drefcurrentkey}{#2}{#3}%  
+}
+%    \end{macrocode}
+% \end{macro}
+%
 %
 %
 % \begin{macro}{\dref}
 %    \begin{macrocode}
-\DeclareDocumentCommand{\dref}{o m}{%
-  \dref@unexpandable{#2}%
-  \IfNoValueTF {#1}{%
-    \gdef\dref@dref@output{\dref@expandable{#2}}%
-  }{%
-    \gdef\dref@dref@output{%
-      \pgfmathparse{\dref@expandable{#2}}%
-      \dref@format[#1]{\pgfmathresult}%
-    }%
-  }%
+\def\dref{\@ifstar\@@dref\@dref}
+\newcommand{\@dref}[2][]{% Unstarred
+  \edef\dref@argument{#2}
+  \expandafter\dref@unexpandable\expandafter{\dref@argument}%
+  \pgfmathparse{\dref@expandable{#2}}%
+  \dref@format[#1]{\pgfmathresult}%
+  \dref@mkannotate{#2}%
+}
+\newcommand{\@@dref}[2][]{ % Starred
+  \edef\dref@argument{#2}
+  \expandafter\dref@unexpandable\expandafter{\dref@argument}%
+  \expandafter\gdef\expandafter\dref@dref@output\expandafter{\expandafter\dref@expandable\expandafter{\dref@argument}}%
   \dref@dref@output%
   \dref@mkannotate{#2}%
 }
@@ -551,17 +610,17 @@
 %
 % \begin{macro}{\dref@referenced}
 %    \begin{macrocode}
-\long\def\dref@notfound#1#2{
+\def\dref@notfound#1#2{
   \ifdref@usagereport%
     \dref@usagereport@notfound{#1}{#2}%
   \else\relax\fi%
 }
-\long\def\dref@found#1#2{
+\def\dref@found#1#2{
   \ifdref@usagereport%
     \dref@usagereport@found{#1}{#2}%
   \else\relax\fi%
 }
-\long\def\dref@referenced#1#2{
+\def\dref@referenced#1#2{
   \ifdref@usagereport%
     \dref@usagereport@referenced{#1}{#2}%
   \else\relax\fi%
@@ -574,9 +633,11 @@
 \def\dref@let#1{%
   \def\@tmp##1=##2;{\pgfmathdeclarefunction*{##1}{0}{\pgfmathparse{##2}}}%
   \renewcommand*{\do}[1]{\@tmp##1;}%
-  \docsvlist{#1}%
+  \ifstrempty{#1}{}{%
+    \docsvlist{#1}%
+  }%
 }
-%    \end{macrocode}
+
 % \end{macro}
 %
 %
@@ -589,23 +650,91 @@
 % \end{macro}
 % \begin{macro}{\drefcalc}
 %    \begin{macrocode}
-\DeclareDocumentCommand{\dref@calc}{o m}{%
-  \IfNoValueTF {#1}{}{%
-    \dref@let{#1}%
-  }%
-  \pgfmathparse{#2}%
+
+
+\def\dref@calc@parser@d#1#2\@nnil{%
+  \ifx&#2&#1\else%
+    \if#1d%
+    \dref@calc@parser@a #2\@nnil%
+  \else%
+    #1\dref@calc@parser@d #2\@nnil%
+  \fi\fi
 }
-\def\drefresult{0.0}
-\DeclareDocumentCommand{\drefcalc}{s O{} m O{}}{%
+
+\def\dref@calc@parser@a#1#2\@nnil{%
+  \ifx&#2&#1\else%
+    \if#1a%
+    \dref@calc@parser@t #2\@nnil%
+  \else%
+    #1\dref@calc@parser@d #2\@nnil%
+  \fi\fi
+}
+
+\def\dref@calc@parser@t#1#2\@nnil{%
+  \ifx&#2&#1\else%
+    \if#1t%
+    \dref@calc@parser@A #2\@nnil%
+  \else%
+    #1\dref@calc@parser@d #2\@nnil%
+  \fi\fi
+}
+
+\def\dref@calc@parser@A#1#2\@nnil{%
+  \ifx&#2&#1\else%
+    \if#1a%
+    \dref@calc@parser@P #2\@nnil%
+  \else%
+    #1\dref@calc@parser@d #2\@nnil%
+  \fi\fi
+}
+
+\def\dref@calc@parser@P#1#2\@nnil{%
+  \ifx&#2&#1\else%
+    \if#1(%
+    \dref@calc@parser@Q #2\@nnil%
+  \else%
+    #1\dref@calc@parser@d #2\@nnil%
+  \fi\fi
+}
+
+\def\dref@calc@parser@Q#1#2\@nnil{%
+  \ifx&#2&#1\else%
+    \if#1"%
+     \dref@calc@parser@E #2\@nnil%
+  \else%
+    #1\dref@calc@parser@d #2\@nnil%
+  \fi\fi
+}
+
+\def\dref@calc@parser@E#1")#2\@nnil{%
+  (\drefvalueof{\dref@data@math@prefix #1})\ifx&#2&\else\dref@calc@parser@d #2\@nnil\fi%
+}
+
+\newcommand{\dref@calc}[1]{%
+  \xdef\dref@calc@argA{#1}%
+  \xdef\dref@calc@@argA{\expandafter\dref@calc@parser@d \dref@calc@argA\@nnil}%
+  \typeout{#1 -> \dref@calc@@argA}
+}
+\pgfset{/dref/let/.code={\dref@let{#1}}}
+\def\drefresult{0}
+\def\drefcalc{\@ifstar\@@drefcalc\@drefcalc}
+\newcommand{\@drefcalc}[2][]{% Unstarred
   \begingroup%
-  \dref@calc[#2]{#3}%
-  \xdef\drefresult{\pgfmathresult}%
-  \IfBooleanTF {#1} {}% Wit star do not print anything
-               {%
-                 \dref@format[#4]{\pgfmathresult}%
-                 \dref@mkannotate{#3}%
-               }%
+  \pgfset{/pgf/number format/.cd, #1}%
+  \dref@calc{#2}%
+  \pgfmathprintnumberto[fixed,assume math mode=true,precision=10,1000 sep={}]{\pgfmathresult}{\drefresult}
+  \xdef\drefresult{\drefresult}%
+  \dref@format{\pgfmathresult}%
+  \dref@mkannotate{#2}%
   \endgroup%
+}
+\newcommand{\@@drefcalc}[2][]{ % Starred
+   \begingroup%
+   \pgfset{/pgf/number format/.cd, #1}%
+   \dref@calc{#2}%
+   \pgfmathprintnumberto[fixed,assume math mode=true,precision=10,1000 sep={}]{\pgfmathresult}{\drefresult}
+   \xdef\drefresult{\drefresult}%
+   \endgroup%
 }
 %    \end{macrocode}
 % \end{macro}
@@ -615,9 +744,7 @@
 \newcommand{\dref@format}[2][]{%
   \pgfmathprintnumber[#1]{#2}%
 }
-\DeclareDocumentCommand{\drefformat}{O{} m}{%
-  \dref@format[#1]{#2}%
-}
+\newcommand{\drefformat}[2][]{\dref@format[#1]{#2}}
 %    \end{macrocode}
 % \end{macro}
 
@@ -632,7 +759,7 @@
                 \pgfmath@smuggleone\pgfmathresult%
         \endgroup%
 }
-\DeclareDocumentCommand{\drefprojection}{m m m}{%
+\long\def\drefprojection#1#2#3{%
   \begingroup%
      \def\dref@data@math@prefix{#1}%
      \def\rename##1##2{\dref@unexpandable{#1/##1}\drefset{#2/##2}{\dref@expandable{#1/##1}}}%
@@ -640,7 +767,7 @@
      \def\calc##1##2{%
        \begingroup%
           \dref@calc{##1}%
-          \xdef\dref@project@result{\pgfmathresult}
+          \xdef\dref@project@result{\drefresult}
        \endgroup%
        \drefset{#2/##2}{\dref@project@result}%
       }%
@@ -676,13 +803,9 @@
           \repeat}%
   }%
   \the\dref@toks}
-\DeclareDocumentCommand{\drefrow}{s m m}{%
-  \IfBooleanTF {#1} {%
-    \dref@makerow{#2}{#3}%
-  }{% Wit star do not print anything
-    \dref@makerow{#2}{\dref[]{#3}}%
-  }%
-}
+\long\def\drefrow{\@ifstar\@@drefrow\@drefrow}
+\def\@drefrow#1#2{\dref@makerow{#1}{\drefvalueof{#2}}} % Unstarred
+\def\@@drefrow#1#2{\dref@makerow{#1}{#2}} % Starred
 %    \end{macrocode}
 % \end{macro}
 %
@@ -850,8 +973,8 @@
 %    \begin{macrocode}
 \newcommand{\drefassert}[1]{%
   \begingroup%
-    \pgfmathsetmacro{\result}{(#1) ? 1 : 0}
-    \expandafter\ifstrequal\expandafter{\result}{1.0}{%
+    \drefcalc*{#1}%
+    \expandafter\ifstrequal\expandafter{\drefresult}{1}{%
       \typeout{Assertion holds: #1}%
     }{%
       \ifdref@noassert%
@@ -865,6 +988,111 @@
 %    \end{macrocode}
 % \end{macro}
 %
+%
+% \begin{macro}{\drefrel}
+%    \begin{macrocode}
+\newif\if@dref@valuemustderef%
+\newif\if@dref@basemustderef%
+\newif\if@dref@increase%
+\newif\if@dref@factor%
+\newif\if@dref@delta%
+\newif\if@dref@percent%
+\newif\if@dref@abs%
+\newif\if@dref@neg%
+
+\pgfkeys{
+  \dref@datapath/.cd,%
+  .DUMMY/.initial=1,%
+  dref relation/.cd,%
+  value/.initial = \dref@datapath/.DUMMY,%
+  base/.initial = \dref@datapath/.DUMMY,%
+  divide/.initial = 1,%
+  value plain/.is if=@dref@valuemustderef,%
+  value plain/.default=false,%
+  value plain=true,%
+  base plain/.is if=@dref@basemustderef,%
+  base plain/.default=false,%
+  base plain=true,%
+  factor/.is if=@dref@factor,%
+  factor/.default=true,%
+  factor=false,%
+  delta/.is if=@dref@delta,%
+  delta/.default=true,%
+  delta=false,%
+  increase/.is if=@dref@increase,%
+  increase/.default=true,%
+  increase=false,%
+  overhead/.is if=@dref@increase,%
+  overhead/.default=true,%
+  overhead=false,%
+  percent/.is if=@dref@percent,%
+  percent/.default=true,%
+  percent=false,%
+  abs/.is if=@dref@abs,%
+  abs/.default=true,%
+  abs=false,%
+  negate/.is if=@dref@neg,%
+  negate/.default=true,%
+  negate=false,%
+}
+
+\newcommand{\drefrel}[2][]{%
+  \begingroup%
+  \pgfkeys{/pgf/fpu,\dref@datapath/dref relation/.cd,%
+    #1,value=#2%
+  }%
+  \if@dref@valuemustderef%
+    \drefref{\drefvalueof{/dref relation/value}}%
+    \def\drefvalue{\drefvalueof{\drefvalueof{/dref relation/value}}}%
+  \else%
+    \def\drefvalue{\drefvalueof{/dref relation/value}}%
+  \fi%
+  \if@dref@basemustderef%
+    \drefref{\drefvalueof{/dref relation/base}}%
+    \def\drefbase{\drefvalueof{\drefvalueof{/dref relation/base}}}%
+  \else%
+    \def\drefbase{\drefvalueof{/dref relation/base}}%
+  \fi%
+  \if@dref@increase%
+     \pgfmathparse{((\drefvalue) - (\drefbase)) / (\drefbase)}%
+     \def\drefresult{\pgfmathresult}%
+  \else%
+     \if@dref@factor%
+         \pgfmathparse{(\drefvalue) / (\drefbase)}%
+         \def\drefresult{\pgfmathresult}%
+     \else%
+         \if@dref@delta%
+             \pgfmathparse{(\drefvalue) - (\drefbase)}%
+             \def\drefresult{\pgfmathresult}%
+         \else%
+             \def\drefresult{\drefvalue}%
+         \fi%
+     \fi%
+  \fi%
+  % Percent
+  \if@dref@percent%
+      \pgfmathparse{(\drefresult)*100.0}%
+      \def\drefresult{\pgfmathresult}%
+  \fi%
+  % Absolute Value
+  \if@dref@abs%
+      \pgfmathparse{abs(\drefresult)}%
+      \def\drefresult{\pgfmathresult}%
+  \fi%
+  % Negative Value
+  \if@dref@neg%
+      \pgfmathparse{-1.0*(\drefresult)}%
+      \def\drefresult{\pgfmathresult}%
+  \fi%
+  \pgfmathparse{\drefresult/\drefvalueof{/dref relation/divide}}%
+  \def\drefresult{\pgfmathresult}%
+  \expandafter\pgfmathprintnumber\expandafter{\drefresult}%
+  \endgroup%
+}
+
+%
+%    \end{macrocode}
+% \end{macro}
 %
 % \iffalse
 %</package>
