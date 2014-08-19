@@ -1,7 +1,7 @@
 % \iffalse meta-comment
 %
 % The MIT License (MIT)
-% 
+ 
 % Copyright (c) 2013 Christian Dietrich
 % 
 % Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -282,7 +282,113 @@
 %   \drefcalc{\cg{dead after 24h}/percent} percent within 24
 %   and \drefcalc{\cg{dead after 48h}/percent} percent within 48 hours.
 % \end{quote}
+%
+% \DescribeMacro{\drefrel[\meta{opts}]\{\meta{key}\}}
+%
+% The \cmd{\drefrel} macro is used to calculate relations between a
+% base value and a concrete key. A prominent example of such a
+% relation is the percent relation. \cmd{\drefrel} allows you to write
+% down intentionally what relation you want to express without
+% thinking about a concrete formula.
+%
+% \begin{quote}
+% \noindent\verb|\drefrel[base=/med A/mice count,factor]{/med A/recovered}| \\
+% \mbox{}\hspace{1cm} $\Rightarrow$ \drefrel[base=/med A/mice
+% count,factor,percent]{/med A/recovered} \\
+% \end{quote}
+%
+% The type of relation can be manipulated with various keys. Almost
+% always the given argument key will be set in relation to a base
+% value. The type of relation can be given as well as post-processing
+% steps.
+%
+% Like \cmd{\drefcalc}, \cmd{\drefrel} sets the \cmd{\drefresult}
+% macro accordingly.
 % 
+% \DescribeMacro{/dref/base}
+% \DescribeMacro{/dref/base plain}
+% \DescribeMacro{/dref/value plain}
+%
+% This specifies the key that will be used as a base. Without the
+% \cmd{base plain} option, the value will be interpreted as a symbolic
+% datapoint. With the option, base contains the plain value. When
+% \cmd{value plain} is given, the mandatory argument is interpreted as
+% a number and not as a symbolic name.
+%
+% \verb|\drefrel[factor,base=50,base plain]{/med A/mice count}| $\Rightarrow$
+% \drefrel[factor,base=50,base plain]{/med A/mice count}
+%
+% \verb|\drefrel[factor,base=50,base plain,value plain]{45}| $\Rightarrow$
+% \drefrel[factor,base=50,base plain,value plain]{45}
+%
+% \DescribeMacro{/dref/factor}
+%
+% Is a base relation type, which cannot be mixed with other relation
+% types. It simply divides the given value by the base value.
+%
+% \[\cmd{\drefresult} = \frac{\texttt{value}}{\texttt{base}}\]
+%
+% \DescribeMacro{/dref/increase}
+% \DescribeMacro{/dref/overhead}
+%
+% Is a base relation type. It calculates the overhead factor a value
+% show toward the base value. \texttt{increase} and  \texttt{overhead}
+% are synonyms.
+%
+% \[\cmd{\drefresult} = \frac{\texttt{value} -
+% \texttt{base}}{\texttt{base}}\]
+%
+% \verb|\drefrel[overhead,base=50,base plain,value plain]{45}| $\Rightarrow$
+% \drefrel[overhead,base=50,base plain,value plain]{45}
+%
+%
+% \DescribeMacro{/dref/delta}
+%
+% Is a base relation type. It calculates the difference between value
+% and base.
+%
+% \[\cmd{\drefresult} = \texttt{value} - \texttt{base}\]
+%
+% \verb|\drefrel[delta,base=50,base plain,value plain]{45}| $\Rightarrow$
+% \drefrel[delta,base=50,base plain,value plain]{45}
+%
+% % \DescribeMacro{/dref/percent}
+%
+% Is a post-processing type. It calculates the percent value from a fraction.
+%
+% \[\cmd{\drefresult} = \cmd{\drefresult} \cdot 100.0 \]
+%
+% \noindent\verb|\drefrel[factor,percent,base=/med A/mice count]{/med A/recovered}| \\
+% \mbox{}\hspace{1cm}$\Rightarrow$ \drefrel[factor,percent,base=/med A/mice count]{/med A/recovered}
+% 
+% % \DescribeMacro{/dref/abs}
+%
+% Is a post-processing type. It takes the absolute value.
+%
+% \[\cmd{\drefresult} = \mid \cmd{\drefresult} \mid \]
+% \verb|\drefrel[overhead,abs,base=50,base plain,value plain]{45}| $\Rightarrow$
+% \drefrel[overhead,abs,base=50,base plain,value plain]{45}
+%
+% % \DescribeMacro{/dref/negate}
+%
+% Is a post-processing type. It negates the value.
+%
+% \[\cmd{\drefresult} = \cmd{\drefresult} \cdot -1.0 \]
+%
+% \noindent\verb|\drefrel[factor,negate,base=/med A/mice count]{/med A/recovered}| \\
+% \mbox{}\hspace{1cm}$\Rightarrow$ \drefrel[factor,negate,base=/med A/mice count]{/med A/recovered}
+%
+% \DescribeMacro{/dref/divide}
+%
+% Is a post-processing type. Divides the result by a contant
+% factor. The argument must be a plain number.
+%
+% \[\cmd{\drefresult} = \cmd{\drefresult} \cdot \{divide\} \]
+%
+% \noindent\verb|\drefrel[value plain,divide=1e6]{1453342654}|
+% $\Rightarrow$ 
+% \drefrel[value plain,divide=1e6]{1453342654}
+%
 % \DescribeMacro{\drefprojection\{\meta{from}\}\{\meta{to}\}\{\meta{projection}\}}
 % 
 % Sometimes one or multiple sets of data have to be projected/mixed into a
@@ -304,7 +410,7 @@
 %       \calc{data("/dead after 24h")+data("/dead after 48h")}{died}
 %     }\end{verbatim}
 % 
-%   \verb|\dref{/projection/died}| $\Rightarrow$ \dref{/projection/died}\\
+%   \verb|\dref*{/projection/died}| $\Rightarrow$ \dref*{/projection/died}\\
 %   \verb|\dref*{/projection/mice race}| $\Rightarrow$ \dref*{/projection/mice race}\\
 %   \verb|\dref{/projection/count}| $\Rightarrow$ \dref{/projection/count}
 % \end{quote}
@@ -359,7 +465,8 @@
 % Of the more than thirty infected mice...
 % \end{verbatim}
 % \drefassert{data("/control group/mice count") > 30}
-% \begingroup \pgfset{/pgf/fpu} \drefcalc{data("/control group/mice count")} \endgroup
+% \begingroup \pgfset{/pgf/fpu} \drefassert{data("/control group/mice
+% count") > 30} \endgroup
 % 
 % The \textbf{noassert} package options disables the latex abortion. In
 % that case only a warning message is printed on the terminal.
@@ -707,13 +814,14 @@
 }
 
 \def\dref@calc@parser@E#1")#2\@nnil{%
-  (\drefvalueof{\dref@data@math@prefix #1})\ifx&#2&\else\dref@calc@parser@d #2\@nnil\fi%
+  (\drefvalueof{\dref@data@math@prefix#1})\ifx&#2&\else\dref@calc@parser@d #2\@nnil\fi%
 }
 
 \newcommand{\dref@calc}[1]{%
   \xdef\dref@calc@argA{#1}%
-  \xdef\dref@calc@@argA{\expandafter\dref@calc@parser@d \dref@calc@argA\@nnil}%
-  \typeout{#1 -> \dref@calc@@argA}
+  \xdef\dref@calc@@argA{\expandafter\dref@calc@parser@d \dref@calc@argA\@nnil}%%
+  \typeout{>>>> \dref@calc@argA -> \dref@calc@@argA}%
+  \pgfmathparse{\dref@calc@@argA}
 }
 \pgfset{/dref/let/.code={\dref@let{#1}}}
 \def\drefresult{0}
@@ -766,7 +874,7 @@
      \def\id##1{\rename{##1}{##1}}%
      \def\calc##1##2{%
        \begingroup%
-          \dref@calc{##1}%
+          \drefcalc{##1}%
           \xdef\dref@project@result{\drefresult}
        \endgroup%
        \drefset{#2/##2}{\dref@project@result}%
@@ -999,13 +1107,13 @@
 \newif\if@dref@percent%
 \newif\if@dref@abs%
 \newif\if@dref@neg%
-
-\pgfkeys{
-  \dref@datapath/.cd,%
-  .DUMMY/.initial=1,%
-  dref relation/.cd,%
-  value/.initial = \dref@datapath/.DUMMY,%
-  base/.initial = \dref@datapath/.DUMMY,%
+\pgfkeys{%
+  \dref@datapath/.DUMMY/.initial=1
+}
+\pgfkeys{%
+  /dref/.cd,%
+  value/.initial = /.DUMMY,%
+  base/.initial  = /.DUMMY,%
   divide/.initial = 1,%
   value plain/.is if=@dref@valuemustderef,%
   value plain/.default=false,%
@@ -1038,21 +1146,22 @@
 
 \newcommand{\drefrel}[2][]{%
   \begingroup%
-  \pgfkeys{/pgf/fpu,\dref@datapath/dref relation/.cd,%
-    #1,value=#2%
-  }%
+  \pgfkeys{/pgf/fpu}%
+  \pgfkeys{/dref/.cd,#1}%
+  \pgfkeys{/dref/value=#2}%
   \if@dref@valuemustderef%
-    \drefref{\drefvalueof{/dref relation/value}}%
-    \def\drefvalue{\drefvalueof{\drefvalueof{/dref relation/value}}}%
+    \drefref{\pgfkeysvalueof{/dref/value}}%
+    \edef\drefvalue{\drefvalueof{\pgfkeysvalueof{/dref/value}}}%
   \else%
-    \def\drefvalue{\drefvalueof{/dref relation/value}}%
+    \def\drefvalue{\pgfkeysvalueof{/dref/value}}%
   \fi%
   \if@dref@basemustderef%
-    \drefref{\drefvalueof{/dref relation/base}}%
-    \def\drefbase{\drefvalueof{\drefvalueof{/dref relation/base}}}%
+    \drefref{\pgfkeysvalueof{/dref/base}}%
+    \def\drefbase{\drefvalueof{\pgfkeysvalueof{/dref/base}}}%
   \else%
-    \def\drefbase{\drefvalueof{/dref relation/base}}%
+    \def\drefbase{\pgfkeysvalueof{/dref/base}}%
   \fi%
+  \xdef\drefresult{\drefvalue}%
   \if@dref@increase%
      \pgfmathparse{((\drefvalue) - (\drefbase)) / (\drefbase)}%
      \def\drefresult{\pgfmathresult}%
@@ -1084,9 +1193,9 @@
       \pgfmathparse{-1.0*(\drefresult)}%
       \def\drefresult{\pgfmathresult}%
   \fi%
-  \pgfmathparse{\drefresult/\drefvalueof{/dref relation/divide}}%
-  \def\drefresult{\pgfmathresult}%
-  \expandafter\pgfmathprintnumber\expandafter{\drefresult}%
+  \pgfmathparse{\drefresult/\pgfkeysvalueof{/dref/divide}}%
+  \pgfmathprintnumberto[fixed,assume math mode=true,precision=10,1000 sep={}]{\pgfmathresult}{\drefresult}
+  \expandafter\pgfmathprintnumber\expandafter{\pgfmathresult}%
   \endgroup%
 }
 
