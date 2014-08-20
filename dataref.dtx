@@ -283,13 +283,14 @@
 %   and \drefcalc{\cg{dead after 48h}/percent} percent within 48 hours.
 % \end{quote}
 %
+% \DescribeMacro{\drefrel*[\meta{opts}]\{\meta{key}\}}
 % \DescribeMacro{\drefrel[\meta{opts}]\{\meta{key}\}}
 %
-% The \cmd{\drefrel} macro is used to calculate relations between a
-% base value and a concrete key. A prominent example of such a
-% relation is the percent relation. \cmd{\drefrel} allows you to write
-% down intentionally what relation you want to express without
-% thinking about a concrete formula.
+% The \cmd{\drefrel} macro is used to calculate relations between a base value and a concrete key. A
+% prominent example of such a relation is the percent relation. \cmd{\drefrel} allows you to write
+% down intentionally what relation you want to express without thinking about a concrete
+% formula. The starred version of this macro does not print anything, but sets only
+% \cmd{\drefresult}.
 %
 % \begin{quote}
 % \noindent\verb|\drefrel[base=/med A/mice count,factor]{/med A/recovered}| \\
@@ -820,7 +821,7 @@
 \newcommand{\dref@calc}[1]{%
   \xdef\dref@calc@argA{#1}%
   \xdef\dref@calc@@argA{\expandafter\dref@calc@parser@d \dref@calc@argA\@nnil}%%
-  \typeout{>>>> \dref@calc@argA -> \dref@calc@@argA}%
+  % \typeout{>>>> \dref@calc@argA -> \dref@calc@@argA}%
   \pgfmathparse{\dref@calc@@argA}
 }
 \pgfset{/dref/let/.code={\dref@let{#1}}}
@@ -1144,7 +1145,14 @@
   negate=false,%
 }
 
-\newcommand{\drefrel}[2][]{%
+\def\drefrel{\@ifstar\@@drefrel\@drefrel}
+
+\newcommand{\@drefrel}[2][]{%
+  \@@drefrel[#1]{#2}%
+  \@@drefrel@result%
+}
+
+\newcommand{\@@drefrel}[2][]{%
   \begingroup%
   \pgfkeys{/pgf/fpu}%
   \pgfkeys{/dref/.cd,#1}%
@@ -1194,8 +1202,10 @@
       \def\drefresult{\pgfmathresult}%
   \fi%
   \pgfmathparse{\drefresult/\pgfkeysvalueof{/dref/divide}}%
-  \pgfmathprintnumberto[fixed,assume math mode=true,precision=10,1000 sep={}]{\pgfmathresult}{\drefresult}
-  \expandafter\pgfmathprintnumber\expandafter{\pgfmathresult}%
+  \pgfmathprintnumberto[fixed,assume math mode=true,precision=10,1000 sep={}]{\pgfmathresult}{\drefresult}%
+  \pgfmathprintnumberto{\pgfmathresult}{\@@drefrel@result}%
+  \xdef\drefresult{\drefresult}%
+  \xdef\@@drefrel@result{\@@drefrel@result}%
   \endgroup%
 }
 
