@@ -636,14 +636,14 @@
 %    \begin{macrocode}
 \def\dref{\@ifstar\@@dref\@dref}
 \newcommand{\@dref}[2][]{% Unstarred
-  \edef\dref@argument{#2}
+  \edef\dref@argument{#2}%
   \expandafter\dref@unexpandable\expandafter{\dref@argument}%
   \pgfmathparse{\dref@expandable{#2}}%
   \dref@format[#1]{\pgfmathresult}%
   \dref@mkannotate{#2}%
 }
 \newcommand{\@@dref}[2][]{ % Starred
-  \edef\dref@argument{#2}
+  \edef\dref@argument{#2}%
   \expandafter\dref@unexpandable\expandafter{\dref@argument}%
   \expandafter\gdef\expandafter\dref@dref@output\expandafter{\expandafter\dref@expandable\expandafter{\dref@argument}}%
   \dref@dref@output%
