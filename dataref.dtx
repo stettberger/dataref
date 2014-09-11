@@ -606,9 +606,10 @@
 \def\dref@unexpandable#1{%
   \def\drefcurrentkey{\dref@datapath#1}%
   \pgfkeysifdefined{\drefcurrentkey}{%
-    \immediate\write\@auxout{\noexpand\dref@found{\drefcurrentkey}{\thepage}}%
+    \edef\dref@thepage{\arabic{page}}%
+    \immediate\write\@auxout{\noexpand\dref@found{\drefcurrentkey}{\dref@thepage}}%
   }{%
-    \immediate\write\@auxout{\noexpand\dref@notfound{\drefcurrentkey}{\thepage}}%
+    \immediate\write\@auxout{\noexpand\dref@notfound{\drefcurrentkey}{\dref@thepage}}%
     \ifdref@ignoremissing%
        \typeout{Dref warning: undefined key `\drefcurrentkey'}%
        \dref@mkannotate{UNDEFINED: \drefcurrentkey}%
@@ -616,7 +617,7 @@
        \dref@error{Dref error: undefined key `\drefcurrentkey'}%
     \fi%
   }%
-  \immediate\write\@auxout{\noexpand\dref@referenced{\drefcurrentkey}{\thepage}}%
+  \immediate\write\@auxout{\noexpand\dref@referenced{\drefcurrentkey}{\dref@thepage}}%
 }
 %    \end{macrocode}
 % \end{macro}
@@ -640,14 +641,14 @@
   \expandafter\dref@unexpandable\expandafter{\dref@argument}%
   \pgfmathparse{\dref@expandable{#2}}%
   \dref@format[#1]{\pgfmathresult}%
-  \dref@mkannotate{#2}%
+  \dref@mkannotate{\textbackslash dref\{#2\}}%
 }
-\newcommand{\@@dref}[2][]{ % Starred
+\newcommand{\@@dref}[2][]{% Starred
   \edef\dref@argument{#2}%
   \expandafter\dref@unexpandable\expandafter{\dref@argument}%
   \expandafter\gdef\expandafter\dref@dref@output\expandafter{\expandafter\dref@expandable\expandafter{\dref@argument}}%
   \dref@dref@output%
-  \dref@mkannotate{#2}%
+  \dref@mkannotate{\textbackslash dref*\{#2\}}%
 }
 %    \end{macrocode}
 % \end{macro}
@@ -759,69 +760,38 @@
 % \begin{macro}{\drefcalc}
 %    \begin{macrocode}
 
-
-\def\dref@calc@parser@d#1#2\@nnil{%
-  \ifx&#2&#1\else%
-    \if#1d%
-    \dref@calc@parser@a #2\@nnil%
-  \else%
-    #1\dref@calc@parser@d #2\@nnil%
-  \fi\fi
+\def\dref@parser@parse#1#2#3\@nnil{%
+  \ifcsdef{dref@parser@#1@#2}{%
+    \csuse{dref@parser@#1@#2}#3\@nnil%
+  }{%
+    #1#2\ifblank{#3}{}{%
+      \dref@parser@parse{}#3\@nnil%
+    }%
+  }%
 }
 
-\def\dref@calc@parser@a#1#2\@nnil{%
-  \ifx&#2&#1\else%
-    \if#1a%
-    \dref@calc@parser@t #2\@nnil%
-  \else%
-    #1\dref@calc@parser@d #2\@nnil%
-  \fi\fi
+\csdef{dref@parser@@d}{\dref@parser@parse{d}}
+\csdef{dref@parser@d@a}{\dref@parser@parse{da}}
+\csdef{dref@parser@da@t}{\dref@parser@parse{dat}}
+\csdef{dref@parser@dat@a}{\dref@parser@parse{data}}
+\csdef{dref@parser@data@(}{\dref@parser@parse{data(}}
+\csdef{dref@parser@data(@"}{\dref@parser@tillquote}
+\csdef{dref@parser@d@(}{\dref@parser@tillparen}
+
+\def\dref@parser@tillquote#1")#2\@nnil{%
+  (\drefvalueof{\dref@data@math@prefix #1})\ifblank{#2}{}{\dref@parser@parse{}#2\@nnil}%
+}
+\def\dref@parser@tillparen#1)#2\@nnil{%
+  (\drefvalueof{\dref@data@math@prefix #1})\ifblank{#2}{}{\dref@parser@parse{}#2\@nnil}%
 }
 
-\def\dref@calc@parser@t#1#2\@nnil{%
-  \ifx&#2&#1\else%
-    \if#1t%
-    \dref@calc@parser@A #2\@nnil%
-  \else%
-    #1\dref@calc@parser@d #2\@nnil%
-  \fi\fi
-}
-
-\def\dref@calc@parser@A#1#2\@nnil{%
-  \ifx&#2&#1\else%
-    \if#1a%
-    \dref@calc@parser@P #2\@nnil%
-  \else%
-    #1\dref@calc@parser@d #2\@nnil%
-  \fi\fi
-}
-
-\def\dref@calc@parser@P#1#2\@nnil{%
-  \ifx&#2&#1\else%
-    \if#1(%
-    \dref@calc@parser@Q #2\@nnil%
-  \else%
-    #1\dref@calc@parser@d #2\@nnil%
-  \fi\fi
-}
-
-\def\dref@calc@parser@Q#1#2\@nnil{%
-  \ifx&#2&#1\else%
-    \if#1"%
-     \dref@calc@parser@E #2\@nnil%
-  \else%
-    #1\dref@calc@parser@d #2\@nnil%
-  \fi\fi
-}
-
-\def\dref@calc@parser@E#1")#2\@nnil{%
-  (\drefvalueof{\dref@data@math@prefix#1})\ifx&#2&\else\dref@calc@parser@d #2\@nnil\fi%
-}
+\def\dref@parser@end#1#2\@nnil{}
+\csdef{dref@parser@@}{\typeout{end}\dref@parser@end}
 
 \newcommand{\dref@calc}[1]{%
   \xdef\dref@calc@argA{#1}%
-  \xdef\dref@calc@@argA{\expandafter\dref@calc@parser@d \dref@calc@argA\@nnil}%%
-  % \typeout{>>>> \dref@calc@argA -> \dref@calc@@argA}%
+  \xdef\dref@calc@@argA{\expandafter\dref@parser@parse \dref@calc@argA\@nnil}%%
+  %\typeout{\dref@calc@@argA}%
   \pgfmathparse{\dref@calc@@argA}
 }
 \pgfset{/dref/let/.code={\dref@let{#1}}}
@@ -834,7 +804,7 @@
   \pgfmathprintnumberto[fixed,assume math mode=true,precision=10,1000 sep={}]{\pgfmathresult}{\drefresult}
   \xdef\drefresult{\drefresult}%
   \dref@format{\pgfmathresult}%
-  \dref@mkannotate{#2}%
+  \dref@mkannotate{\textbackslash drefcalc\{#2\}}%
   \endgroup%
 }
 \newcommand{\@@drefcalc}[2][]{ % Starred
@@ -925,15 +895,17 @@
   \RequirePackage{pdfcomment}
 }
 
+\def\dref@mkannotate@none#1{\relax}
+\def\dref@mkannotate@footnote#1{\footnote{\texttt{#1}}}
+\def\dref@mkannotate@pdfcomment#1{\pdfcomment[opacity=0.4,voffset=2ex]{#1}}
+
 \newcommand{\dref@mkannotate}[1]{%
-  \expandafter\ifstrequal\expandafter{\dref@annotate}{none}%
-    {\relax}%
-    {\expandafter\ifstrequal\expandafter{\dref@annotate}{footnote}%
-      {\footnote{#1}}%
-      {\expandafter\ifstrequal\expandafter{\dref@annotate}{pdfcomment}%
-        {\pdfcomment[opacity=0.4,voffset=2ex]{#1}}%
-        {\dref@error{Value for annotate not supported: '\dref@annotate'}%
-          }}}}%
+  \ifcsdef{dref@mkannotate@\dref@annotate}{%
+    \csuse{dref@mkannotate@\dref@annotate}{#1}%
+    }{%
+      \dref@error{Value for annotate not supported: '\dref@annotate'}%
+    }%
+}
 
 \newcommand{\drefannotate}[1]{%
   \renewcommand{\dref@annotate}{#1}%
@@ -945,7 +917,7 @@
 %% Usagereport
 %    \begin{macrocode}
 \ifdref@usagereport
-  \RequirePackage{longtable}
+  \RequirePackage{xtab}
   \RequirePackage{booktabs}
 \fi
 %    \end{macrocode}
@@ -997,12 +969,19 @@
 %
 % \begin{macro}{\dref@usagereport@keyheader}
 %    \begin{macrocode}
+\newif\ifdref@usagereport@keyheader@first
+\dref@usagereport@keyheader@firsttrue
 \newcommand{\dref@usagereport@keyheader}[1]{%
+  \ifdref@usagereport@keyheader@first%
+  \global\dref@usagereport@keyheader@firstfalse%
+  \else%
+    \\%
+  \fi%
   \textbf{\ifdef{\hypertarget}%
     {\hypertarget{#1}{\dref@usagereport@strippath{#1}}}%
     {\dref@usagereport@strippath{#1}}}%
   & \dref@usagereport@formatreferencelist{#1}%
-  & \pgfkeysifdefined{#1}{\pgfkeysvalueof{#1}}{\textbf{\color{red}undefined}} \\%
+  & \pgfkeysifdefined{#1}{\pgfkeysvalueof{#1}}{\textbf{\color{red}undefined}}%
 }
 %    \end{macrocode}
 % \end{macro}
@@ -1010,9 +989,19 @@
 %
 % \begin{macro}{\dref@usagereport@forhelp}
 %    \begin{macrocode}
+\newif\ifdref@withhelp
+\errorcontextlines=23
+\newlength{\dreflinewidth}%
 \newcommand{\dref@usagereport@forhelp}[1]{%
   \begingroup%
-  \noindent\csuse{dref@help@#1}
+  \dref@withhelpfalse%
+  \renewcommand{\do}[1]{%
+    \dref@help@match{#1}{##1}{%
+      \dref@withhelptrue%
+    }{}%
+  }%
+  \dolistcsloop{dref@usagereport@keys}%
+  \dref@usagereport@keyheader@firsttrue%
   \renewcommand{\do}[1]{%
     \dref@help@match{#1}{##1}{%
       \dref@usagereport@keyheader{##1}%
@@ -1021,13 +1010,17 @@
       }%
     }{}%
   }%
-  \begin{longtable}{@{\extracolsep{\fill}}lll@{}}\toprule%
-    & Page(s) & Value \\ \midrule
-    \endhead
-    \bottomrule%
-    \endfoot
-  \dolistcsloop{dref@usagereport@keys}%
-  \end{longtable}%
+  \ifdref@withhelp
+    \tablehead{\hline      & Page  & Value \\\hline}%
+    \setlength\tabcolsep{3pt}%
+    \dreflinewidth=\linewidth%
+    \advance\dreflinewidth by -6\tabcolsep%
+    \begin{xtabular}{|p{0.7\dreflinewidth}|p{0.15\dreflinewidth}|p{0.15\dreflinewidth}|}%
+      \dolistcsloop{dref@usagereport@keys}\\\hline
+      \multicolumn{3}{|p{\linewidth}|}{\csuse{dref@help@#1}}\\\hline
+    \end{xtabular}%
+  \fi%
+
   \endgroup%
 }
 %    \end{macrocode}
@@ -1036,19 +1029,30 @@
 %
 % \begin{macro}{\dref@usagereport@withouthelp}
 %    \begin{macrocode}
+\newif\ifdref@withouthelp
 \newcommand{\dref@usagereport@withouthelp}{%
+  \begingroup%
+  \dref@withouthelpfalse%
+  \renewcommand{\do}[1]{%
+    \ifinlistcs{##1}{dref@usagereport@matchedkeys}{}{%
+      \dref@withouthelptrue%
+    }%
+  }%
+  \dolistcsloop{dref@usagereport@keys}%
   \renewcommand{\do}[1]{%
     \ifinlistcs{##1}{dref@usagereport@matchedkeys}{}{%
       \dref@usagereport@keyheader{##1}%
     }%
   }%
-  \begin{longtable}{@{\extracolsep{\fill}}lll@{}}\toprule%
-    Keys without Help  & Page(s) & Value \\\midrule
-    \endhead
-    \bottomrule
-    \endfoot
-    \dolistcsloop{dref@usagereport@keys}%
-  \end{longtable}%
+  \ifdref@withouthelp%
+    \setlength\tabcolsep{0pt}%
+    \tablehead{\toprule Keys without Help & Page & Value \\ \midrule}%
+    \begin{xtabular}{p{0.7\linewidth}p{0.15\linewidth}p{0.15\linewidth}}
+      \dolistcsloop{dref@usagereport@keys}\\
+      \bottomrule
+    \end{xtabular}%
+   \fi%
+   \endgroup%
 }
 %    \end{macrocode}
 % \end{macro}
@@ -1060,15 +1064,12 @@
   \ifdref@usagereport%
   \ifcsvoid{dref@usagereport@keys}{\typeout{EMPTY}}{%
   \begingroup%
-  \setlength{\LTleft}{2em}%
-  \setlength{\LTright}{0pt}%
   \renewcommand{\do}[1]{%
     \ifinlistcs{##1}{dref@usagereport@matchedkeys}{}{%
       \dref@usagereport@forhelp{##1}%
     }%
   }%
   \dolistcsloop{dref@helps} % For all help text
-  \setlength{\LTleft}{0em}%
   \dref@usagereport@withouthelp\relax
   \endgroup%
   }% csempty @keys
@@ -1150,6 +1151,7 @@
 \newcommand{\@drefrel}[2][]{%
   \@@drefrel[#1]{#2}%
   \@@drefrel@result%
+  \dref@mkannotate{\textbackslash{}drefrel[#1]\{#2\}}%
 }
 
 \newcommand{\@@drefrel}[2][]{%
