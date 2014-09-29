@@ -865,25 +865,38 @@
 \newcommand{\dref@makerow}[2]{%
   {\global\dref@toks={}%
     \@tempcnta=\z@%
-    \def\inner##1##2{#2}%
+    \gdef\drefinner##1##2{#2}%
     \renewcommand*{\do}[1]{%
       \advance\@tempcnta\@ne%
-      \csdef{@cell\number\@tempcnta}{\inner{##1}{\number\@tempcntb}}%
+      \csxdef{@cell\the\@tempcnta}{\detokenize{%
+          \drefinner{##1}}%
+        {\the\@tempcnta}%
+        }%
     }%
     \expandafter\def\expandafter\arglist\expandafter{#1}%
     \expandafter\docsvlist\expandafter{\arglist}%
-    \@tempcntb=\z@
-        {\loop\ifnum\@tempcntb<\@tempcnta
-          \advance\@tempcntb\@ne
-          \edef\next{%
-            \ifnum\@tempcntb=\@ne\else&\fi
-            \csuse{@cell\number\@tempcntb}}%
-          \global\dref@toks=\expandafter{\the\expandafter\dref@toks\next}%
-          \repeat}%
+    \@tempcntb=0\relax
+    {\loop\ifnum\@tempcntb<\@tempcnta
+      \advance\@tempcntb by 1\relax%
+      \ifnum \@tempcntb = 1%
+        \edef\@@next{\csuse{@cell\the\@tempcntb}}%
+      \else%
+        \edef\@@next{&\csuse{@cell\the\@tempcntb}}%
+      \fi%
+      \global%
+      \dref@toks%
+      \expandafter=%
+      \expandafter{%
+        \the%
+        \expandafter\dref@toks%
+        \@@next}%
+      \repeat}%
   }%
-  \the\dref@toks}
+  %\typeout{LINE: \the\dref@toks}%
+  \expandafter\scantokens\expandafter{\the\dref@toks}}
+
 \long\def\drefrow{\@ifstar\@@drefrow\@drefrow}
-\def\@drefrow#1#2{\dref@makerow{#1}{\drefvalueof{#2}}} % Unstarred
+\def\@drefrow#1#2{\dref@makerow{#1}{\dref{#2}}} % Unstarred
 \def\@@drefrow#1#2{\dref@makerow{#1}{#2}} % Starred
 %    \end{macrocode}
 % \end{macro}
