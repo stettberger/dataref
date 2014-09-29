@@ -861,22 +861,25 @@
 %    \begin{macrocode}
 
 \newtoks\dref@toks
+\newcount\drefcellcount
 
 \newcommand{\dref@makerow}[2]{%
   {\global\dref@toks={}%
-    \@tempcnta=\z@%
-    \gdef\drefinner##1##2{#2}%
-    \renewcommand*{\do}[1]{%
-      \advance\@tempcnta\@ne%
-      \csxdef{@cell\the\@tempcnta}{\detokenize{%
-          \drefinner{##1}}%
-        {\the\@tempcnta}%
-        }%
+    \drefcellcount=\z@%
+    \def\do##1{%
+      \advance\drefcellcount\@ne%
+      \def\@tempa{\doX{##1}}%
+      \expandafter\@tempa\expandafter{\the\drefcellcount}%
+    }%
+    \def\doX##1##2{%
+      \csxdef{@cell\the\drefcellcount}{\detokenize{%
+          #2%
+        }}%
     }%
     \expandafter\def\expandafter\arglist\expandafter{#1}%
     \expandafter\docsvlist\expandafter{\arglist}%
     \@tempcntb=0\relax
-    {\loop\ifnum\@tempcntb<\@tempcnta
+    {\loop\ifnum\@tempcntb<\drefcellcount
       \advance\@tempcntb by 1\relax%
       \ifnum \@tempcntb = 1%
         \edef\@@next{\csuse{@cell\the\@tempcntb}}%
@@ -892,7 +895,7 @@
         \@@next}%
       \repeat}%
   }%
-  %\typeout{LINE: \the\dref@toks}%
+  \typeout{LINE: \the\dref@toks}%
   \expandafter\scantokens\expandafter{\the\dref@toks}}
 
 \long\def\drefrow{\@ifstar\@@drefrow\@drefrow}
