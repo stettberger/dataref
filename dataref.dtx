@@ -587,8 +587,8 @@
 % \begin{macro}{\dref@expandable}
 %    \begin{macrocode}
 \def\dref@expandable#1{%
-  \pgfkeysifdefined{\dref@datapath#1}{%
-    \pgfkeysvalueof{\dref@datapath#1}%
+  \pgfkeysifdefined{\dref@datapath\csuse{dref@prefix}#1}{%
+    \pgfkeysvalueof{\dref@datapath\csuse{dref@prefix}#1}%
   }{%
     \ifdref@ignoremissing%
       \dref@defaultvalue%
@@ -604,7 +604,7 @@
 % \begin{macro}{\dref@unexpandable}
 %    \begin{macrocode}
 \def\dref@unexpandable#1{%
-  \def\drefcurrentkey{\dref@datapath#1}%
+  \def\drefcurrentkey{\dref@datapath\csuse{dref@prefix}#1}%
   \pgfkeysifdefined{\drefcurrentkey}{%
     \edef\dref@thepage{\arabic{page}}%
     \immediate\write\@auxout{\noexpand\dref@found{\drefcurrentkey}{\dref@thepage}}%
@@ -625,7 +625,7 @@
 % \begin{macro}{\drefifdefined}
 %    \begin{macrocode}
 \newcommand{\drefifdefined}[3]{
-  \def\drefcurrentkey{\dref@datapath#1}%
+  \def\drefcurrentkey{\dref@datapath\csuse{dref@prefix}#1}%
   \pgfkeysifdefined{\drefcurrentkey}{#2}{#3}%  
 }
 %    \end{macrocode}
@@ -760,41 +760,64 @@
 % \begin{macro}{\drefcalc}
 %    \begin{macrocode}
 
-\def\dref@parser@parse#1#2#3\@nnil{%
-  \ifcsdef{dref@parser@#1@#2}{%
-    \csuse{dref@parser@#1@#2}#3\@nnil%
+\def\dref@parser#1#2{%
+  \edef\@tempa{#1}%
+  \csdef{dref@parser@result}{}%
+  \csdef{dref@parser@state}{}%
+  \expandafter\dref@parser@parse\@tempa\@nnil%
+  \xdef#2{\csuse{dref@parser@result}}%
+}
+
+\def\dref@parser@parse#1#2\@nnil{%
+  %\typeout{#1 State: \csuse{dref@parser@state}}%
+  \ifblank{#1#2}{%
+    \csxdef{dref@parser@result}{\csuse{dref@parser@result}\csuse{dref@parser@state}}%
   }{%
-    #1#2\ifblank{#3}{}{%
-      \dref@parser@parse{}#3\@nnil%
+    \ifcsdef{dref@parser@\csuse{dref@parser@state}@#1}{%
+      \csuse{dref@parser@\csuse{dref@parser@state}@#1}#2\@nnil%
+    }{%
+      \csxdef{dref@parser@result}{\csuse{dref@parser@result}\csuse{dref@parser@state}#1}%
+      \csdef{dref@parser@state}{}%
+      \ifblank{#2}{}{%
+        \dref@parser@parse#2\@nnil%
+      }%
     }%
   }%
 }
 
-\csdef{dref@parser@@d}{\dref@parser@parse{d}}
-\csdef{dref@parser@d@a}{\dref@parser@parse{da}}
-\csdef{dref@parser@da@t}{\dref@parser@parse{dat}}
-\csdef{dref@parser@dat@a}{\dref@parser@parse{data}}
-\csdef{dref@parser@data@(}{\dref@parser@parse{data(}}
+\csdef{dref@parser@@d}{\csdef{dref@parser@state}{d}\dref@parser@parse}
+\csdef{dref@parser@d@a}{\csdef{dref@parser@state}{da}\dref@parser@parse}
+\csdef{dref@parser@da@t}{\csdef{dref@parser@state}{dat}\dref@parser@parse}
+\csdef{dref@parser@dat@a}{\csdef{dref@parser@state}{data}\dref@parser@parse}
+\csdef{dref@parser@data@(}{\csdef{dref@parser@state}{data(}\dref@parser@parse}
 \csdef{dref@parser@data(@"}{\dref@parser@tillquote}
 \csdef{dref@parser@d@(}{\dref@parser@tillparen}
 
 \def\dref@parser@tillquote#1")#2\@nnil{%
-  (\drefvalueof{\dref@data@math@prefix #1})\ifblank{#2}{}{\dref@parser@parse{}#2\@nnil}%
-}
+  \drefref{\dref@data@math@prefix #1}%
+  \csxdef{dref@parser@result}{\csuse{dref@parser@result}(\drefvalueof{\dref@data@math@prefix #1})}%
+  \csdef{dref@parser@state}{}%
+  \ifblank{#2}{}{\dref@parser@parse#2\@nnil}}
+
 \def\dref@parser@tillparen#1)#2\@nnil{%
-  (\drefvalueof{\dref@data@math@prefix #1})\ifblank{#2}{}{\dref@parser@parse{}#2\@nnil}%
-}
+  \drefref{\dref@data@math@prefix #1}%
+  \csxdef{dref@parser@result}{\csuse{dref@parser@result}(\drefvalueof{\dref@data@math@prefix #1})}%
+  \csdef{dref@parser@state}{}%
+  \ifblank{#2}{}{\dref@parser@parse#2\@nnil}}%
+
 
 \def\dref@parser@end#1#2\@nnil{}
 \csdef{dref@parser@@}{\typeout{end}\dref@parser@end}
 
 \newcommand{\dref@calc}[1]{%
-  \xdef\dref@calc@argA{#1}%
-  \xdef\dref@calc@@argA{\expandafter\dref@parser@parse \dref@calc@argA\@nnil}%%
-  %\typeout{\dref@calc@@argA}%
+  %\typeout{Before: '#1'}%
+  \dref@parser{#1}{\dref@calc@@argA}%
+  %\typeout{After:  \dref@calc@@argA}%
   \pgfmathparse{\dref@calc@@argA}
 }
 \pgfset{/dref/let/.code={\dref@let{#1}}}
+\pgfset{/dref/prefix/.code={\csdef{dref@prefix}{#1}}}
+\def\drefprefix#1{\csdef{dref@prefix}{#1}}
 \def\drefresult{0}
 \def\drefcalc{\@ifstar\@@drefcalc\@drefcalc}
 \newcommand{\@drefcalc}[2][]{% Unstarred
@@ -1055,17 +1078,19 @@
     }%
   }%
   \dolistcsloop{dref@usagereport@keys}%
+  \dref@usagereport@keyheader@firsttrue%
   \renewcommand{\do}[1]{%
     \ifinlistcs{##1}{dref@usagereport@matchedkeys}{}{%
       \dref@usagereport@keyheader{##1}%
     }%
   }%
   \ifdref@withouthelp%
-    \setlength\tabcolsep{0pt}%
-    \tablehead{\toprule Keys without Help & Page & Value \\ \midrule}%
-    \begin{xtabular}{p{0.7\linewidth}p{0.15\linewidth}p{0.15\linewidth}}
-      \dolistcsloop{dref@usagereport@keys}\\
-      \bottomrule
+    \tablehead{\hline Keys without Description      & Page  & Value \\\hline}%
+    \setlength\tabcolsep{3pt}%
+    \dreflinewidth=\linewidth%
+    \advance\dreflinewidth by -6\tabcolsep%
+    \begin{xtabular}{|p{0.7\dreflinewidth}|p{0.15\dreflinewidth}|p{0.15\dreflinewidth}|}%
+      \dolistcsloop{dref@usagereport@keys}\\\hline
     \end{xtabular}%
    \fi%
    \endgroup%
