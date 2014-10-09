@@ -353,6 +353,16 @@
 % \verb|\drefrel[delta,base=50,base plain,value plain]{45}| $\Rightarrow$
 % \drefrel[delta,base=50,base plain,value plain]{45}
 %
+% \DescribeMacro{/dref/scale}
+% \DescribeMacro{/dref/product}
+%
+% Is a base-relation type. It calculates the product of value and base.
+%
+% \[\cmd{\drefresult} = \texttt{value} \cdot \texttt{base}\]
+%
+% \verb|\drefrel[scale,base=50,base plain,value plain]{45}| $\Rightarrow$
+% \drefrel[scale,base=100,base plain,value plain]{0.45}
+%
 % % \DescribeMacro{/dref/percent}
 %
 % Is a post-processing type. It calculates the percent value from a fraction.
@@ -389,6 +399,7 @@
 % \noindent\verb|\drefrel[value plain,divide=1e6]{1453342654}|
 % $\Rightarrow$ 
 % \drefrel[value plain,divide=1e6]{1453342654}
+%
 %
 % \DescribeMacro{\drefprojection\{\meta{from}\}\{\meta{to}\}\{\meta{projection}\}}
 % 
@@ -1124,6 +1135,7 @@
 \newif\if@dref@valuemustderef%
 \newif\if@dref@basemustderef%
 \newif\if@dref@increase%
+\newif\if@dref@product%
 \newif\if@dref@factor%
 \newif\if@dref@delta%
 \newif\if@dref@percent%
@@ -1149,6 +1161,12 @@
   delta/.is if=@dref@delta,%
   delta/.default=true,%
   delta=false,%
+  scale/.is if=@dref@product,%
+  scale/.default=true,%
+  scale=false,%
+  product/.is if=@dref@product,%
+  product/.default=true,%
+  product=false,%
   increase/.is if=@dref@increase,%
   increase/.default=true,%
   increase=false,%
@@ -1204,7 +1222,12 @@
              \pgfmathparse{(\drefvalue) - (\drefbase)}%
              \def\drefresult{\pgfmathresult}%
          \else%
-             \def\drefresult{\drefvalue}%
+            \if@dref@product%
+               \pgfmathparse{(\drefvalue) * (\drefbase)}%
+               \def\drefresult{\pgfmathresult}%
+            \else
+               \def\drefresult{\drefvalue}%
+            \fi
          \fi%
      \fi%
   \fi%
