@@ -836,7 +836,7 @@
   \begingroup%
   \pgfset{/pgf/number format/.cd, #1}%
   \dref@calc{#2}%
-  \pgfmathprintnumberto[fixed,assume math mode=true,precision=10,1000 sep={}]{\pgfmathresult}{\drefresult}
+  \pgfmathprintnumberto[fixed,assume math mode=true,precision=10,1000 sep={}]{\pgfmathresult}{\drefresult}%
   \xdef\drefresult{\drefresult}%
   \dref@format{\pgfmathresult}%
   \dref@mkannotate{\textbackslash drefcalc\{#2\}}%
@@ -846,7 +846,7 @@
    \begingroup%
    \pgfset{/pgf/number format/.cd, #1}%
    \dref@calc{#2}%
-   \pgfmathprintnumberto[fixed,assume math mode=true,precision=10,1000 sep={}]{\pgfmathresult}{\drefresult}
+   \pgfmathprintnumberto[fixed,assume math mode=true,precision=10,1000 sep={}]{\pgfmathresult}{\drefresult}%
    \xdef\drefresult{\drefresult}%
    \endgroup%
 }
