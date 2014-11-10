@@ -1037,9 +1037,23 @@
 %    \end{macrocode}
 % \end{macro}
 %
+%  \begin{macro}{\drefusagereportaftergroup}
+%   \begin{macrocode}
+
+\def\drefusagereportaftergroup{}
+
+\def\drefusagereportbeforerow{}
+\def\drefusagereportbeforetitle{}
+\def\drefusagereportaftertitle{}
+
+\def\drefusagereportbeforedescription{}
+
+%    \end{macrocode}
+% \end{macro}
 %
 % \begin{macro}{\dref@usagereport@forhelp}
 %    \begin{macrocode}
+
 \newif\ifdref@withhelp
 \errorcontextlines=23
 \newlength{\dreflinewidth}%
@@ -1055,6 +1069,7 @@
   \dref@usagereport@keyheader@firsttrue%
   \renewcommand{\do}[1]{%
     \dref@help@match{#1}{##1}{%
+      \drefusagereportbeforerow%
       \dref@usagereport@keyheader{##1}%
       \ifinlistcs{##1}{dref@usagereport@matchedkeys}{}{%
         \listcsgadd{dref@usagereport@matchedkeys}{##1}%
@@ -1062,16 +1077,22 @@
     }{}%
   }%
   \ifdref@withhelp
-    \tablehead{\hline      & Page  & Value \\\hline}%
+    \tablehead{\drefusagereportbeforetitle%
+      \hline      & Page  & Value %
+      \drefusagereportaftertitle\\\hline%
+    }%
     \setlength\tabcolsep{3pt}%
     \dreflinewidth=\linewidth%
-    \advance\dreflinewidth by -6\tabcolsep%
+    \advance\dreflinewidth by -4\tabcolsep%
+    \advance\dreflinewidth by -2\arrayrulewidth%
     \begin{xtabular}{|p{0.7\dreflinewidth}|p{0.15\dreflinewidth}|p{0.15\dreflinewidth}|}%
       \dolistcsloop{dref@usagereport@keys}\\\hline
+      \drefusagereportbeforedescription%
       \multicolumn{3}{|p{\linewidth}|}{\csuse{dref@help@#1}}\\\hline
     \end{xtabular}%
   \fi%
-
+  \drefusagereportaftergroup%
+   
   \endgroup%
 }
 %    \end{macrocode}
@@ -1093,16 +1114,24 @@
   \dref@usagereport@keyheader@firsttrue%
   \renewcommand{\do}[1]{%
     \ifinlistcs{##1}{dref@usagereport@matchedkeys}{}{%
+      \drefusagereportbeforerow%
       \dref@usagereport@keyheader{##1}%
     }%
   }%
   \ifdref@withouthelp%
-    \tablehead{\hline Keys without Description      & Page  & Value \\\hline}%
+    \tablehead{\drefusagereportbeforetitle%
+      \hline Keys without Description     & Page  & Value %
+      \drefusagereportaftertitle\\\hline%
+    }%
     \setlength\tabcolsep{3pt}%
     \dreflinewidth=\linewidth%
-    \advance\dreflinewidth by -6\tabcolsep%
+    \advance\dreflinewidth by -4\tabcolsep%
+    \advance\dreflinewidth by -2\arrayrulewidth%
     \begin{xtabular}{|p{0.7\dreflinewidth}|p{0.15\dreflinewidth}|p{0.15\dreflinewidth}|}%
       \dolistcsloop{dref@usagereport@keys}\\\hline
+      \drefusagereportbeforedescription%
+      \multicolumn{3}{|p{\linewidth}|}{%
+        \emph{For these keys, no description was given}}\\\hline
     \end{xtabular}%
    \fi%
    \endgroup%
