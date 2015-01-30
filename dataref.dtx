@@ -576,13 +576,14 @@
 % \begin{macro}{\dref@set}
 %    \begin{macrocode}
 \def\dref@set#1#2{%
-    \pgfkeys@temptoks{#2}%
-    \expandafter\xdef\csname
-    pgfk@\dref@datapath#1\endcsname{\the\pgfkeys@temptoks}%
-    \ifdref@refall%
-      \expandafter\dref@found\expandafter{\dref@datapath#1}{0}
-      \expandafter\dref@referenced\expandafter{\dref@datapath#1}{0}%
-    \fi%
+  \edef\dref@set@tmp{#2}%
+  \expandafter\pgfkeys@temptoks\expandafter{\dref@set@tmp}%
+  \expandafter\xdef\csname
+  pgfk@\dref@datapath#1\endcsname{\the\pgfkeys@temptoks}%
+  \ifdref@refall%
+     \expandafter\dref@found\expandafter{\dref@datapath#1}{0}
+     \expandafter\dref@referenced\expandafter{\dref@datapath#1}{0}%
+  \fi%
 }
 %    \end{macrocode}
 % \end{macro}
