@@ -185,6 +185,8 @@
 %
 % The helptext for a key is obtained by using the \cmd{\drefhelp} macro. It checks all defined helps (in linear order, first defined, first matched), and prints the first matching help text.
 %
+% For \textbf{LuaTeX}: When using this \TeX{} engine, only Lua (string.find)
+% regular expressions are supported as patterns.
 % \begin{quote}
 %  \verb|\drefhelp{/med A/mice race}|
 % \end{quote}
@@ -546,6 +548,7 @@
 % 
 % \begin{macrocode}
 \RequirePackage{pgf}
+\RequirePackage{iftex}
 \RequirePackage{kvoptions}
 \usepgflibrary{fpu}
 \usepackage{etoolbox}
@@ -616,12 +619,6 @@
     \immediate\write\@auxout{\noexpand\dref@found{\drefcurrentkey}{\dref@thepage}}%
   }{%
     \immediate\write\@auxout{\noexpand\dref@notfound{\drefcurrentkey}{\dref@thepage}}%
-    \ifdref@ignoremissing%
-       \typeout{Dref warning: undefined key `\drefcurrentkey'}%
-       \dref@mkannotate{UNDEFINED: \drefcurrentkey}%
-    \else%
-       \dref@error{Dref error: undefined key `\drefcurrentkey'}%
-    \fi%
   }%
   \immediate\write\@auxout{\noexpand\dref@referenced{\drefcurrentkey}{\dref@thepage}}%
 }
@@ -683,11 +680,27 @@
 %    \begin{macrocode}
 %% dref@ifstrmatch is copied from etextools, but etextools is
 %% incompatible with etoolbox
+%% \ifstrmatch{ pattern }{ string }{ true }{ false }
+\ifPDFTeX%
+\let\dref@strmatch\pdfmatch
+\fi
+\ifLuaTeX%
+\newcommand{\dref@strmatch}[2]{%
+  \directlua{%
+    local match = string.find("\luaescapestring{#2}", "\luaescapestring{#1}");%
+    if match then
+      tex.print("1");
+    else
+      tex.print("0");
+    end
+  }%
+}
+\fi
 \long\def\dref@firstoftwo#1#2{\z@#1} %% for romannumeral
 \long\def\dref@secondoftwo#1#2{\z@#2}%% for romannumeral
 \newcommand{\dref@ifstrmatch}[2]{%
   \romannumeral\csname dref@%
-  \ifnum\pdfmatch{#1}{#2}=1 first\else second\fi oftwo\endcsname%
+  \ifnum\dref@strmatch{#1}{#2}=1 first\else second\fi oftwo\endcsname%
 }
 \newcommand{\dref@help@match}[2]{%
   \dref@ifstrmatch{#1}{#2}%
