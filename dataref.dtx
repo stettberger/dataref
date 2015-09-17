@@ -24,11 +24,11 @@
 %</driver>
 %<package>\NeedsTeXFormat{LaTeX2e}[1999/12/01]
 %<package>\ProvidesPackage{dataref}
-%<package> [2015/04/21 v0.4 dataref]
+%<package> [2015/09/17 v0.5 dataref]
 %
 %<*driver>
 \documentclass{ltxdoc}
-\usepackage[usagereport]{dataref}[2015/04/21]
+\usepackage[usagereport]{dataref}[2015/09/17]
 \EnableCrossrefs
 \CodelineIndex
 \RecordChanges
@@ -549,9 +549,6 @@
 \RequirePackage{kvoptions}
 \usepgflibrary{fpu}
 \usepackage{etoolbox}
-\let\origforlistloop\forlistloop
-\usepackage{etextools}
-\let\forlistloop\origforlistloop
 \RequirePackage{xcolor}
 
 %    \end{macrocode}
@@ -684,8 +681,16 @@
 %
 % \begin{macro}{\dref@help@match}
 %    \begin{macrocode}
+%% dref@ifstrmatch is copied from etextools, but etextools is
+%% incompatible with etoolbox
+\long\def\dref@firstoftwo#1#2{\z@#1} %% for romannumeral
+\long\def\dref@secondoftwo#1#2{\z@#2}%% for romannumeral
+\newcommand{\dref@ifstrmatch}[2]{%
+  \romannumeral\csname dref@%
+  \ifnum\pdfmatch{#1}{#2}=1 first\else second\fi oftwo\endcsname%
+}
 \newcommand{\dref@help@match}[2]{%
-  \ifstrmatch{#1}{#2}%
+  \dref@ifstrmatch{#1}{#2}%
 }
 %    \end{macrocode}
 % \end{macro}
@@ -995,7 +1000,7 @@
 \expandafter\def\expandafter\dref@usagereport@strippath@\dref@datapath#1\blanktest{#1}
 
 \newcommand{\dref@usagereport@strippath}[1]{%
-  \expandafter\ifstrmatch\expandafter{\expandafter^\dref@datapath.*$}{#1}%
+  \expandafter\dref@ifstrmatch\expandafter{\expandafter^\dref@datapath.*$}{#1}%
     {\dref@usagereport@strippath@#1\blanktest}%
     {#1}%
 }
