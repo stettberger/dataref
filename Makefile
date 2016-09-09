@@ -1,21 +1,18 @@
 all: dataref.pdf
 
-dataref.pdf: dataref.dtx dataref.sty
-	latexmk -pdf dataref.dtx
+dataref.pdf: dataref.sty dataref.tex
+	latexmk -pdf dataref.tex || touch dataref.tex
 
-dataref-luatex.pdf: dataref.dtx dataref.sty
+dataref-luatex.pdf: dataref.tex dataref.sty
 	if [ -e dataref.pdf ]; then mv -f dataref.pdf dataref-tmp.pdf; fi
-	lualatex dataref.dtx
-	lualatex dataref.dtx
-	lualatex dataref.dtx
+	lualatex dataref.tex
+	lualatex dataref.tex
+	lualatex dataref.tex
 	mv dataref.pdf $@
 	if [ -e dataref-tmp.pdf ]; then \
 		mv -f dataref-tmp.pdf dataref.pdf; \
 	fi
 
-
-dataref.sty: dataref.ins dataref.dtx
-	tex dataref.ins
 
 
 dataref.zip: dataref.dtx dataref.ins dataref.pdf README.md
