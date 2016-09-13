@@ -75,22 +75,22 @@
 \def\drefcurrentkey{\drefprefix\dref@path}
 
 \def\dref@set#1#2{%
-  \edef\dref@path{#1}%
+  \edef\dref@set@path{#1}%
   \edef\dref@set@value{#2}%
   \expandafter\pgfkeys@temptoks\expandafter{\dref@set@value}%
   \expandafter\xdef%
-      \csname pgfk@\dref@datapath\dref@path\endcsname%
+      \csname pgfk@\dref@datapath\dref@set@path\endcsname%
   {\the\pgfkeys@temptoks}%
   \ifdref@refall%
-     \expandafter\dref@found\expandafter{\dref@path}{0}
-     \expandafter\dref@referenced\expandafter{\dref@path}{0}%
+     \expandafter\dref@found\expandafter{\dref@set@path}{0}
+     \expandafter\dref@referenced\expandafter{\dref@set@path}{0}%
   \fi%
 }
 
 \def\dref@load#1#2{%
-  \edef\dref@load@key{#1}%
-  \pgfkeysifdefined{\dref@datapath\dref@load@key}{%
-    \pgfkeysgetvalue{\dref@datapath\dref@load@key}{#2}%
+  \edef\dref@load@path{#1}%
+  \pgfkeysifdefined{\dref@datapath\dref@load@path}{%
+    \pgfkeysgetvalue{\dref@datapath\dref@load@path}{#2}%
   }{%
     \def#2{\dref@defaultvalue}%
   }%
@@ -119,8 +119,10 @@
 
 \def\dref@checkexististing#1{%
   \drefifdefined{#1}{}{%
-  \ifdref@ignoremissing\else%
-     \dref@error{undefined key `#1'}%
+    \ifdref@ignoremissing%
+      \dref@warning{undefined key `#1'}%
+    \else%
+      \dref@error{undefined key `#1'}%
   \fi%
   }%
 }
@@ -135,8 +137,9 @@
   \immediate\write\@auxout{\noexpand\dref@referenced{\drefprefix #1}{\dref@thepage}}%
 }
 
-\def\dref{\@ifstar\@@dref\@dref}
-\newcommand{\@dref}[2][]{% Unstarred
+% From here on, everything should be implemented using pgfkeys
+\protected\def\dref{\@ifstar\dref@starred\dref@unstarred}
+\newcommand{\dref@unstarred}[2][]{% Unstarred
   \dref@checkexististing{#2}%
   \drefref{#2}%
   \dref@load{#2}{\@dref@value}%
@@ -144,7 +147,7 @@
   \dref@format[#1]{\pgfmathresult}%
   \dref@mkannotate{\textbackslash dref\{#2\}}%
 }
-\newcommand{\@@dref}[2][]{% Starred
+\newcommand{\dref@starred}[2][]{%
   \dref@checkexististing{#2}%
   \drefref{#2}%
   \dref@load{#2}{\@dref@value}%
@@ -223,16 +226,12 @@
     \dref@usagereport@referenced{#1}{#2}%
   \else\relax\fi%
 }
-\def\dref@let#1{%
+\def\dreflet#1{%
   \def\@tmp##1=##2;{\pgfmathdeclarefunction*{##1}{0}{\pgfmathparse{##2}}}%
   \renewcommand*{\do}[1]{\@tmp##1;}%
   \ifstrempty{#1}{}{%
     \docsvlist{#1}%
   }%
-}
-
-\def\dreflet#1{%
-  \dref@let{#1}%
 }
 
 \def\dref@parser#1#2{%
@@ -292,9 +291,9 @@
   \pgfmathparse{\dref@calc@@argA}%
 }
 
-\pgfset{/dref/let/.code={\dref@let{#1}}}
+\pgfset{/dref/let/.code={\dreflet{#1}}}
 \def\drefresult{0}
-\def\drefcalc{\@ifstar\@@drefcalc\@drefcalc}
+\protected\def\drefcalc{\@ifstar\@@drefcalc\@drefcalc}
 \newcommand{\@drefcalc}[2][]{% Unstarred
   \begingroup%
   \pgfset{/pgf/number format/.cd, #1}%
