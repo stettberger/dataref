@@ -47,23 +47,7 @@
 \DeclareBoolOption{noassert}
 \ProcessKeyvalOptions*
 
-\def\drefkeys#1{\pgfkeys{/dref/.cd,#1}}
-\drefkeys{
-  prefix/.initial={},
-  path/.store in={\dref@path},
-  value/.initial={},
-  set/.code={\drefset{#1}{\pgfkeysvalueof{/dref/value}}},
-  set to/.code 2 args={\drefset{#1}{#2}},
-  %
-  save/.code={\drefsave{#1}{\pgfkeysvalueof{/dref/value}}},
-  save to/.code 2 args={\drefsave{#1}{#2}},
-  %
-  load to macro/.code={},
-  ignoremissing/.is if={dref@ignoremissing},
-}
-
-\def\drefprefix{\pgfkeysvalueof{/dref/prefix}}
-\def\drefcurrentkey{\drefprefix\dref@path}
+% Load & Store Layer
 
 \def\dref@set#1#2{%
   \edef\dref@set@path{#1}%
@@ -83,7 +67,7 @@
   \pgfkeysifdefined{\dref@datapath\dref@load@path}{%
     \pgfkeysgetvalue{\dref@datapath\dref@load@path}{#2}%
   }{%
-    \def#2{\dref@defaultvalue}%
+    \edef#2{\dref@defaultvalue}%
   }%
 }
 
@@ -99,60 +83,114 @@
   }%
 }
 
-\def\drefset#1#2{%
-  \dref@set{\drefprefix #1}{#2}%
+\def\drefkeys#1{\pgfkeys{/dref/.cd,#1}}
+
+\drefkeys{
+  .is family,
+  .search also={/pgf/number format},
+  % The @init action is used to initialize all other actions
+  @init/.style={},
+  % The \drefresult macro holds the current value,
+  % it can be set by value=
+  prefix/.estore in={\drefprefix},prefix={},
+  value/.estore in={\drefresult},
+  @init/.append style={value=0},
+  % \drefresult can be set by the @load action
+  @load key/.code={\dref@load{\drefprefix #1}{\drefresult}},
+  @get key/.style={
+    @check key={#1},
+    @reference key={#1},
+    @load key={#1},
+  },
+  % For most commands, we want to check whether a key exists.
+  @check key/.code={%
+    \drefifdefined{#1}{}{%
+      \ifdref@ignoremissing%
+        \dref@warning{undefined key `#1'}%
+      \else%
+        \dref@error{undefined key `#1'}%
+      \fi%
+    }%
+  },
+  % The @set action is used to pipe out \drefresult, before we can
+  % print it. For example, we can use it to save the result to a new
+  % key.
+  @init/.append style={@set/.code={}},
+  set/.style={
+    @set/.append code={%
+      \dref@set{\drefprefix #1}{\drefresult}%
+    }
+  },
+  save/.style={
+    set={#1},
+    @set/.append code={%
+      \immediate\write\@auxout{%
+        \noexpand\dref@set@fromaux{\drefprefix #1}{\drefresult}}%
+    }
+  },
+  to macro/.style={
+    @set/.append code={\edef#1{\drefresult}}
+  },
+  %
+  ignoremissing/.is if={dref@ignoremissing},
 }
 
-\def\drefsave#1#2{%
-  \drefset{#1}{#2}%
-  \immediate\write\@auxout{\noexpand\dref@set@fromaux{\drefprefix #1}{#2}}
+% Print layer
+\drefkeys{
+  @init/.append style={
+    @print/.code={},
+  },
+  print/.is choice,
+  print/no/.style={
+    @print/.code={}
+  },
+  print/raw/.style={
+    @print/.code={\drefresult}
+  },
+  print/typeout/.style={
+    @print/.append code={\typeout{#1\drefresult}}
+  },
+  print/show/.style={
+    @print/.append code={\show\drefresult},
+  },
+  print/pgf/.style={
+    @print/.code={
+      \pgfmathprintnumber{\drefresult}%
+    }
+  },
 }
 
-\def\dref@checkexististing#1{%
-  \drefifdefined{#1}{}{%
-    \ifdref@ignoremissing%
-      \dref@warning{undefined key `#1'}%
-    \else%
-      \dref@error{undefined key `#1'}%
-  \fi%
-  }%
-}
-
-\def\drefref#1{%
-  \edef\dref@thepage{\arabic{page}}%
-  \drefifdefined{#1}{%
-   \immediate\write\@auxout{\noexpand\dref@found{\drefprefix #1}{\dref@thepage}}%
-  }{%
-    \immediate\write\@auxout{\noexpand\dref@notfound{\drefprefix #1}{\dref@thepage}}%
-  }%
-  \immediate\write\@auxout{\noexpand\dref@referenced{\drefprefix #1}{\dref@thepage}}%
-}
+\def\drefset#1#2{\drefkeys{@init, value={#2}, set={#1}, @set}}
+\def\drefsave#1#2{\drefkeys{@init, value={#2}, save={#1}, @set}}
+\def\drefref#1{\drefkeys{@reference key={#1}}}
 
 % From here on, everything should be implemented using pgfkeys
 \protected\def\dref{\@ifstar\dref@starred\dref@unstarred}
 \newcommand{\dref@unstarred}[2][]{% Unstarred
-  \dref@checkexististing{#2}%
-  \drefref{#2}%
-  \dref@load{#2}{\@dref@value}%
-  \pgfmathparse{\@dref@value}%
-  \dref@format[#1]{\pgfmathresult}%
+  \drefkeys{
+    @init,
+    print=pgf,
+    @get key={#2},
+    #1,
+    @print, @set
+  }%
   \dref@mkannotate{\textbackslash dref\{#2\}}%
 }
 \newcommand{\dref@starred}[2][]{%
-  \dref@checkexististing{#2}%
-  \drefref{#2}%
-  \dref@load{#2}{\@dref@value}%
-  \@dref@value%
+  \drefkeys{
+    @init,
+    print=raw,
+    @get key={#2},
+    #1,
+    @print, @set
+  }%
   \dref@mkannotate{\textbackslash dref*\{#2\}}%
 }
 \def\drefgetvalue#1#2{%
-  \dref@checkexististing{#1}%
-  \dref@load{#1}{#2}%
+  \drefkeys{@init, @get key={#1}, to macro={#2}, @set}%
 }
 \def\drefvalueof#1{%
-  \dref@checkexististing{#1}%
-  \drefgetvalue{#1}{\drefvalueof@value}%
-  \drefvalueof@value%
+  \drefkeys{@init, @check key={#1}, @load key={#1}, print=raw, @print}%
 }
 
 %% dref@ifstrmatch is copied from etextools, but etextools is
@@ -202,6 +240,20 @@
     \dolistcsloop{dref@helps}%
   }%
 }
+\drefkeys{
+  @reference key/.code={%
+    \edef\dref@thepage{\arabic{page}}%
+    \drefifdefined{#1}{%
+      \immediate\write\@auxout{%
+        \noexpand\dref@found{\drefprefix #1}{\dref@thepage}}%
+    }{%
+      \immediate\write\@auxout{%
+        \noexpand\dref@notfound{\drefprefix #1}{\dref@thepage}}%
+    }%
+    \immediate\write\@auxout{%
+      \noexpand\dref@referenced{\drefprefix #1}{\dref@thepage}}%
+  }
+}
 \def\dref@notfound#1#2{
   \ifdref@usagereport%
     \dref@usagereport@notfound{#1}{#2}%
@@ -224,6 +276,7 @@
     \docsvlist{#1}%
   }%
 }
+\pgfset{/dref/let/.code={\dreflet{#1}}}
 
 \def\dref@parser#1#2{%
   \edef\@tempa{#1}%
@@ -282,8 +335,6 @@
   \pgfmathparse{\dref@calc@@argA}%
 }
 
-\pgfset{/dref/let/.code={\dreflet{#1}}}
-\def\drefresult{0}
 \protected\def\drefcalc{\@ifstar\drefcalc@starred\drefcalc@unstarred}
 \newcommand{\drefcalc@unstarred}[2][]{% Unstarred
   \begingroup%
@@ -625,12 +676,11 @@
   \begingroup%
   \pgfkeys{/pgf/fpu}%
   \pgfkeys{/dref/.cd,#1}%
-  \pgfkeys{/dref/path=#2}%
   \if@dref@valuemustderef%
-    \drefref{\dref@path}%
-    \drefgetvalue{\dref@path}{\drefvalue}%
+    \drefref{#2}%
+    \drefgetvalue{#2}{\drefresult}%
   \else%
-    \edef\drefvalue{\dref@path}%
+    \edef\drefresult{#2}%
   \fi%
   \if@dref@basemustderef%
     \drefref{\pgfkeysvalueof{/dref/base}}%
@@ -638,24 +688,24 @@
   \else%
     \edef\drefbase{\pgfkeysvalueof{/dref/base}}%
   \fi%
-  \xdef\drefresult{\drefvalue}%
+  \xdef\drefresult{\drefresult}%
   \if@dref@increase%
-     \pgfmathparse{((\drefvalue) - (\drefbase)) / (\drefbase)}%
-     \def\drefresult{\pgfmathresult}%
+     \pgfmathparse{((\drefresult) - (\drefbase)) / (\drefbase)}%
+     \xdef\drefresult{\pgfmathresult}%
   \else%
      \if@dref@factor%
-         \pgfmathparse{(\drefvalue) / (\drefbase)}%
-         \def\drefresult{\pgfmathresult}%
+         \pgfmathparse{(\drefresult) / (\drefbase)}%
+         \xdef\drefresult{\pgfmathresult}%
      \else%
          \if@dref@delta%
-             \pgfmathparse{(\drefvalue) - (\drefbase)}%
-             \def\drefresult{\pgfmathresult}%
+             \pgfmathparse{(\drefresult) - (\drefbase)}%
+             \xdef\drefresult{\pgfmathresult}%
          \else%
             \if@dref@product%
-               \pgfmathparse{(\drefvalue) * (\drefbase)}%
-               \def\drefresult{\pgfmathresult}%
+               \pgfmathparse{(\drefresult) * (\drefbase)}%
+               \xdef\drefresult{\pgfmathresult}%
             \else
-               \def\drefresult{\drefvalue}%
+               \xdef\drefresult{\drefresult}%
             \fi
          \fi%
      \fi%
