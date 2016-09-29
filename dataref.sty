@@ -1,12 +1,4 @@
-%%
-%% This is file `dataref.sty',
-%% generated with the docstrip utility.
-%%
-%% The original source files were:
-%%
-%% dataref.dtx  (with options: `package')
-%% dataref.dtx
-%%  Copyright 2013 Christian Dietrich
+%%  Copyright 2013-2016 Christian Dietrich
 %%
 %% This work may be distributed and/or modified under the
 %% conditions of the LaTeX Project Public License, either version 1.3
@@ -40,9 +32,7 @@
 \usepgflibrary{fpu}
 \RequirePackage{iftex}
 \RequirePackage{kvoptions}
-
 \RequirePackage{etoolbox}
-\RequirePackage{xcolor}
 
 \SetupKeyvalOptions{
   family=dref,
@@ -69,6 +59,7 @@
   save to/.code 2 args={\drefsave{#1}{#2}},
   %
   load to macro/.code={},
+  ignoremissing/.is if={dref@ignoremissing},
 }
 
 \def\drefprefix{\pgfkeysvalueof{/dref/prefix}}
@@ -168,10 +159,10 @@
 %% incompatible with etoolbox
 %% \ifstrmatch{ pattern }{ string }{ true }{ false }
 \ifPDFTeX%
-\let\dref@strmatch\pdfmatch
+  \let\dref@strmatch\pdfmatch
 \fi
 \ifLuaTeX%
-\newcommand{\dref@strmatch}[2]{%
+ \newcommand{\dref@strmatch}[2]{%
   \directlua{%
     local match = string.find("\luaescapestring{#2}", "\luaescapestring{#1}");%
     if match then
@@ -282,7 +273,7 @@
   \ifblank{#2}{}{\dref@parser@parse#2\@nnil}}%
 
 \def\dref@parser@end#1#2\@nnil{}
-\csdef{dref@parser@@}{\typeout{end}\dref@parser@end}
+\csdef{dref@parser@@}{\dref@parser@end}
 
 \newcommand{\dref@calc}[1]{%
   %\typeout{Before: '#1'}%
@@ -293,8 +284,8 @@
 
 \pgfset{/dref/let/.code={\dreflet{#1}}}
 \def\drefresult{0}
-\protected\def\drefcalc{\@ifstar\@@drefcalc\@drefcalc}
-\newcommand{\@drefcalc}[2][]{% Unstarred
+\protected\def\drefcalc{\@ifstar\drefcalc@starred\drefcalc@unstarred}
+\newcommand{\drefcalc@unstarred}[2][]{% Unstarred
   \begingroup%
   \pgfset{/pgf/number format/.cd, #1}%
   \dref@calc{#2}%
@@ -304,7 +295,7 @@
   \dref@mkannotate{\textbackslash drefcalc\{#2\}}%
   \endgroup%
 }
-\newcommand{\@@drefcalc}[2][]{ % Starred
+\newcommand{\drefcalc@starred}[2][]{ % Starred
    \begingroup%
    \pgfset{/pgf/number format/.cd, #1}%
    \dref@calc{#2}%
@@ -364,8 +355,8 @@
     }%
     \expandafter\def\expandafter\arglist\expandafter{#1}%
     \expandafter\docsvlist\expandafter{\arglist}%
-    \@tempcntb=0\relax
-    {\loop\ifnum\@tempcntb<\drefcellcount
+    \@tempcntb=0\relax%
+    {\loop\ifnum\@tempcntb<\drefcellcount%
       \advance\@tempcntb by 1\relax%
       \ifnum \@tempcntb = 1%
         \edef\@@next{\csuse{@cell\the\@tempcntb}}%
@@ -381,12 +372,12 @@
         \@@next}%
       \repeat}%
   }%
-  \typeout{LINE: \the\dref@toks}%
-  \expandafter\scantokens\expandafter{\the\dref@toks}}
+  \expandafter\scantokens\expandafter{\the\dref@toks}%
+}
 
-\long\def\drefrow{\@ifstar\@@drefrow\@drefrow}
-\def\@drefrow#1#2{\dref@makerow{#1}{\dref{#2}}} % Unstarred
-\def\@@drefrow#1#2{\dref@makerow{#1}{#2}} % Starred
+\long\def\drefrow{\@ifstar{\drefrow@starred}{\drefrow@unstarred}}
+\def\drefrow@unstarred#1#2{\dref@makerow{#1}{\dref{#2}}\ignorespaces}
+\def\drefrow@starred#1#2{\dref@makerow{#1}{#2}\ignorespaces}
 
 \expandafter\ifstrequal\expandafter{\dref@annotate}{pdfcomment}{
   \RequirePackage{pdfcomment}
@@ -453,7 +444,7 @@
     {\hypertarget{#1}{\dref@usagereport@strippath{#1}}}%
     {\dref@usagereport@strippath{#1}}}%
   & \dref@usagereport@formatreferencelist{#1}%
-  & \drefifdefined{#1}{\drefvalueof{#1}}{\textbf{\color{red}undefined}}%
+  & \drefifdefined{#1}{\drefvalueof{#1}}{\textbf{undefined}}%
 }
 
 \def\drefusagereportaftergroup{}
@@ -560,10 +551,10 @@
   \begingroup%
     \drefcalc*{#1}%
     \expandafter\ifstrequal\expandafter{\drefresult}{1}{%
-      \typeout{Assertion holds: #1}%
+      \dref@warning{Assertion holds: #1}%
     }{%
       \ifdref@noassert%
-        \typeout{Assertion failed: #1}%
+        \dref@warning{Assertion failed: #1}%
       \else%
         \dref@error{Assertion failed: #1}%
       \fi%
