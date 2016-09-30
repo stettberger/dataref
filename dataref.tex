@@ -484,7 +484,7 @@
  \DescribeMacro{[annotate=none]}
  \DescribeMacro{[annotate=footnote]}
  \DescribeMacro{[annotate=pdfcomment]}
- \DescribeMacro{\drefannotate\{\meta{style}\}}
+ \DescribeMacro{[annotate=typeout]}
 
 
  While writing a document it is desirable to know, what key is used,
@@ -493,23 +493,23 @@
  default package option \textbf{none} disables this kind of
  annotation. The \textbf{pdfcomment} option uses pdf
  annotations. Be aware that those annotations work properlyy only on a few
- selected PDF readers\footnote{In doubt use Acrobat}. \cmd{\drefannotate} sets the annoation
- style for the current group.
+ selected PDF readers\footnote{In doubt use Acrobat}.
 
  \begin{quote}
-   \verb|\drefannotate{none}|\drefannotate{none}\\
+   \verb|\drefkeys{annotate=none}|\drefkeys{annotate=none}\\
    \dref*{/control group/mice race}, \dref{/control group/mice count}, \drefcalc{100/3}
  \end{quote}
 
  \begin{quote}
-   \verb|\drefannotate{footnote}|\drefannotate{footnote}\\
+   \verb|\drefkeys{annotate=footnote}|\drefkeys{annotate=footnote}\\
    \dref*{/control group/mice race}, \dref{/control group/mice count}, \drefcalc{100/3}
  \end{quote}
 
  \begin{quote}
-   \verb|\drefannotate{pdfcomment}|\drefannotate{pdfcomment}\\
+   \verb|\drefkeys{annotate=pdfcomment}|\drefkeys{annotate=pdfcomment}\\
    \dref*{/control group/mice race}, \dref{/control group/mice count}, \drefcalc{100/3}
  \end{quote}
+
 
  \DescribeMacro{\drefusagereport}
  \DescribeMacro{[usagereport]}
