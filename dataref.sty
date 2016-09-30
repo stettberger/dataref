@@ -94,15 +94,17 @@
   % The \drefresult macro holds the current value,
   % it can be set by value=
   prefix/.estore in={\drefprefix},prefix={},
-  value/.estore in={\drefresult},
-  @init/.append style={value=0},
+  value/.estore in={\drefresult},value=0,
+  @init/.append style={},
   % \drefresult can be set by the @load action
-  @load key/.code={\dref@load{\drefprefix #1}{\drefresult}},
-  @get key/.style={
+  @load key to/.code 2 args={\dref@load{\drefprefix #1}{#2}},
+  @load key/.style={@load key to={#1}{\drefresult}},
+  @get key to/.style 2 args={
     @check key={#1},
     @reference key={#1},
-    @load key={#1},
+    @load key to={#1}{#2},
   },
+  @get key/.style={@get key to={#1}{\drefresult}},
   % For most commands, we want to check whether a key exists.
   @check key/.code={%
     \drefifdefined{#1}{}{%
@@ -135,6 +137,33 @@
   %
   ignoremissing/.is if={dref@ignoremissing},
 }
+
+\csdef{dref@ifnum@0}{}
+\csdef{dref@ifnum@1}{}
+\csdef{dref@ifnum@2}{}
+\csdef{dref@ifnum@3}{}
+\csdef{dref@ifnum@4}{}
+\csdef{dref@ifnum@5}{}
+\csdef{dref@ifnum@6}{}
+\csdef{dref@ifnum@7}{}
+\csdef{dref@ifnum@8}{}
+\csdef{dref@ifnum@9}{}
+\csdef{dref@ifnum@-}{}
+\csdef{dref@ifnum@.}{}
+\def\dref@load@ifkey@firstchar#1#2\@nnil{#1}
+\drefkeys{%
+  @get key or value to/.code 2 args={
+    \edef\dref@load@path{#1}%
+    \edef\dref@firstchar{\expandafter\dref@load@ifkey@firstchar \dref@load@path\@nnil}%
+    \ifcsdef{dref@ifnum@\dref@firstchar}{%
+      \edef#2{\dref@load@path}%
+    }{%
+      \drefkeys{@get key to={#1}{#2}}%
+    }%
+  },
+  @get key or value/.style={@get key or value to={#1}{\drefresult}},
+}
+
 
 % Print layer
 \drefkeys{
@@ -460,7 +489,7 @@
 \expandafter\def\expandafter\dref@usagereport@strippath@\dref@datapath#1\blanktest{#1}
 
 \newcommand{\dref@usagereport@strippath}[1]{%
-  \expandafter\dref@ifstrmatch\expandafter{\expandafter^\dref@datapath.*$}{#1}%
+  \expandafter\dref@ifstrmatch\expandafter{\expandafter^\dref@datapath.*$}{#1}%$
     {\dref@usagereport@strippath@#1\blanktest}%
     {#1}%
 }
@@ -600,137 +629,56 @@
    }%
   \endgroup%
 }
-\newif\if@dref@valuemustderef%
-\newif\if@dref@basemustderef%
-\newif\if@dref@increase%
-\newif\if@dref@product%
-\newif\if@dref@factor%
-\newif\if@dref@delta%
-\newif\if@dref@percent%
-\newif\if@dref@abs%
-\newif\if@dref@neg%
-\pgfkeys{%
-  \dref@datapath/.DUMMY/.initial=1
-}
-\pgfkeys{%
-  /dref/.cd,%
-  value/.initial = /.DUMMY,%
-  base/.initial  = /.DUMMY,%
-  divide/.initial = 1,%
-  value plain/.is if=@dref@valuemustderef,%
-  value plain/.default=false,%
-  value plain=true,%
-  base plain/.is if=@dref@basemustderef,%
-  base plain/.default=false,%
-  base plain=true,%
-  factor/.is if=@dref@factor,%
-  factor/.default=true,%
-  factor=false,%
-  delta/.is if=@dref@delta,%
-  delta/.default=true,%
-  delta=false,%
-  scale/.is if=@dref@product,%
-  scale/.default=true,%
-  scale=false,%
-  product/.is if=@dref@product,%
-  product/.default=true,%
-  product=false,%
-  increase/.is if=@dref@increase,%
-  increase/.default=true,%
-  increase=false,%
-  overhead/.is if=@dref@increase,%
-  overhead/.default=true,%
-  overhead=false,%
-  percent/.is if=@dref@percent,%
-  percent/.default=true,%
-  percent=false,%
-  abs/.is if=@dref@abs,%
-  abs/.default=true,%
-  abs=false,%
-  negate/.is if=@dref@neg,%
-  negate/.default=true,%
-  negate=false,%
+\drefkeys{%
+  factor of/.style={%
+    @get key or value to={#1}{\drefrel@tmp},%
+    @calc pgf/.expanded={(\noexpand\drefresult)/(\drefrel@tmp)}
+  },
+  percent/.style={
+    @calc pgf={100 * (\drefresult)},
+  },
+  percent of/.style={
+    factor of=#1, percent,
+  },
+  scale by/.style={
+    @get key or value to={#1}{\drefrel@tmp},%
+    @calc pgf/.expanded={(\drefrel@tmp) * (\noexpand\drefresult)},
+  },
+  product/.style={scale by={#1}},
+  divide by/.style={
+    @get key or value to={#1}{\drefrel@tmp},%
+    @calc pgf/.expanded={(\drefrel@tmp) / (\noexpand\drefresult)},
+  },
+  divide/.style={divide by},
+  product/.style={scale by={#1}},
+  overhead of/.style={
+    @get key or value to={#1}{\drefrel@tmp},%
+    @calc pgf/.expanded={((\noexpand\drefresult)-(\drefrel@tmp))/(\drefrel@tmp)},
+  },
+  increase by/.style={overhead of={#1}},
+  delta/.style={
+    @get key or value to={#1}{\drefrel@tmp},%
+    @calc pgf/.expanded={((\noexpand\drefresult)-(\drefrel@tmp))},
+  },
+  abs/.style={
+    @calc pgf={abs(\drefresult)}
+  },
+  negate/.style={
+    @calc pgf={-1 * (\drefresult)}
+  },
 }
 
-\def\drefrel{\@ifstar\@@drefrel\@drefrel}
+\def\drefrel{\@ifstar\drefrel@starred\drefrel@unstarred}
 
-\newcommand{\@drefrel}[2][]{%
-  \@@drefrel[#1]{#2}%
-  %\dref@mkannotate{\textbackslash{}drefrel[#1]\{#2\}}%
-  \@@drefrel@result%
-}
-%$
-\newcommand{\@@drefrel}[2][]{%
-  \begingroup%
-  \pgfkeys{/pgf/fpu}%
-  \pgfkeys{/dref/.cd,#1}%
-  \if@dref@valuemustderef%
-    \drefref{#2}%
-    \drefgetvalue{#2}{\drefresult}%
-  \else%
-    \edef\drefresult{#2}%
-  \fi%
-  \if@dref@basemustderef%
-    \drefref{\pgfkeysvalueof{/dref/base}}%
-    \drefgetvalue{\pgfkeysvalueof{/dref/base}}{\drefbase}%
-  \else%
-    \edef\drefbase{\pgfkeysvalueof{/dref/base}}%
-  \fi%
-  \xdef\drefresult{\drefresult}%
-  \if@dref@increase%
-     \pgfmathparse{((\drefresult) - (\drefbase)) / (\drefbase)}%
-     \xdef\drefresult{\pgfmathresult}%
-  \else%
-     \if@dref@factor%
-         \pgfmathparse{(\drefresult) / (\drefbase)}%
-         \xdef\drefresult{\pgfmathresult}%
-     \else%
-         \if@dref@delta%
-             \pgfmathparse{(\drefresult) - (\drefbase)}%
-             \xdef\drefresult{\pgfmathresult}%
-         \else%
-            \if@dref@product%
-               \pgfmathparse{(\drefresult) * (\drefbase)}%
-               \xdef\drefresult{\pgfmathresult}%
-            \else
-               \xdef\drefresult{\drefresult}%
-            \fi
-         \fi%
-     \fi%
-  \fi%
-  % Percent
-  \if@dref@percent%
-      \pgfmathparse{(\drefresult)*100.0}%
-      \def\drefresult{\pgfmathresult}%
-  \fi%
-  % Absolute Value
-  \if@dref@abs%
-      \pgfmathparse{abs(\drefresult)}%
-      \def\drefresult{\pgfmathresult}%
-  \fi%
-  % Negative Value
-  \if@dref@neg%
-      \pgfmathparse{-1.0*(\drefresult)}%
-      \def\drefresult{\pgfmathresult}%
-  \fi%
-  \pgfmathparse{\drefresult/\pgfkeysvalueof{/dref/divide}}%
-  \pgfmathprintnumberto[fixed,assume math mode=true,precision=10,1000 sep={}]{\pgfmathresult}{\drefresult}%
-  \pgfmathprintnumberto{\pgfmathresult}{\@@drefrel@result}%
-  \xdef\drefresult{\drefresult}%
-  \xdef\@@drefrel@result{\@@drefrel@result}%
-  \endgroup%
+\newcommand{\drefrel@unstarred}[2][]{%
+  \drefkeys{@init, print=pgf, @get key or value={#2}, #1, @calc, @print, @set,%
+    @annotate={\textbackslash drefrel[#1]\{#2\}}}
 }
 
-\drefset{foo}{123}
-\drefkeys{
-  @init,
-  to macro=\barfoo,
-  print=typeout,
-  @get key={foo},
-  @set,
-  @print,
+\newcommand{\drefrel@starred}[2][]{%
+  \drefkeys{@init, @get key or value={#2}, #1, @calc, @print, @set,%
+    @annotate={\textbackslash drefrel[#1]\{#2\}}}
 }
-
 
 \endinput
 %%

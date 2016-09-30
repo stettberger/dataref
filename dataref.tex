@@ -27,22 +27,23 @@
 \begin{filecontents}{datapoints.tex}
 \drefset{/control group/mice race}{Black Six}
 \drefset{/control group/mice count}{32}
-\drefset{/control group/dead after 24h}{3}
+\drefset{/control group/dead after 24h}{4}
 \drefset{/control group/dead after 48h}{7}
-\drefset{/control group/recovered}{6}
+\drefset{/control group/recovered}{21}
 
 \drefset{/med A/mice race}{Black Six}
 \drefset{/med A/mice count}{32}
 \drefset{/med A/dead after 24h}{6}
-\drefset{/med A/dead after 48h}{1}
-\drefset{/med A/recovered}{9}
+\drefset{/med A/dead after 48h}{12}
+\drefset{/med A/recovered}{20}
 
 \drefsethelp{.*/mice race}{The mice race used for experiments heavily
      influences the outcome of the results}
 
 \drefsethelp{.*/(dead after|recovered)}{Of all infected mice, a
   certain number died within a specified period of time. A certain
-  recovered from the infection. Each mouse is in exactly one category.}
+  recovered from the infection. The dead categories are cumulative and
+include all dead mice before.}
 \end{filecontents}
 \input{datapoints}
 % \OnlyDescription
@@ -291,113 +292,98 @@
  \cmd{\drefresult}.
 
  \begin{quote}
- \noindent\verb|\drefrel[base=/med A/mice count,factor]{/med A/recovered}| \\
- \mbox{}\hspace{1cm} $\Rightarrow$ \drefrel[base=/med A/mice
- count,factor,percent]{/med A/recovered} \\
+ \noindent\verb|\drefrel[factor of=/med A/mice count]{/med A/recovered}| \\
+ \mbox{}\hspace{1cm} $\Rightarrow$ \drefrel[factor of=/med A/mice count]{/med A/recovered} \\
  \end{quote}
 
- The type of relation can be manipulated with various keys. Almost
- always the given argument key will be set in relation to a base
- value. The type of relation can be given as well as post-processing
- steps.
+ The type of relation is expressed with with various keys in a given
+ order. The relation-key sequence performs calculations on the given
+ data point. Like \cmd{\drefcalc}, \cmd{\drefrel} sets the
+ \cmd{\drefresult} macro accordingly.
 
- Like \cmd{\drefcalc}, \cmd{\drefrel} sets the \cmd{\drefresult}
- macro accordingly.
+ \DescribeMacro{factor of=\meta{key or value}}
+ \DescribeMacro{percent of=\meta{key or value}}
 
- \DescribeMacro{/dref/base}
- \DescribeMacro{/dref/base plain}
- \DescribeMacro{/dref/value plain}
+ Both relations are very similar, since they divide the current value
+ by the given value. The \cmd{percent of} variant, scales the result
+ by 100. The argument can be either a dataref key or a plain number.
 
- This specifies the key that will be used as a base. Without the
- \textbf{base plain} option, the value will be interpreted as a symbolic
- datapoint. With the option, base contains the plain value. When
- \textbf{value plain} is given, the mandatory argument is interpreted as
- a number and not as a symbolic name.
+ \[\cmd{\drefresult} = \frac{\texttt{value}}{\texttt{arg}}\]
 
- \verb|\drefrel[factor,base=50,base plain]{/med A/mice count}| $\Rightarrow$
- \drefrel[factor,base=50,base plain]{/med A/mice count}
+ \noindent\verb|\drefrel[factor of=50]{/med A/mice count}| $\Rightarrow$ \drefrel[factor of=50]{/med A/mice count}\\
+ \verb|\drefrel[percent of=/med A/mice count]{/med A/recovered}| $\Rightarrow$ \drefrel[percent of=/med A/mice count]{/med A/recovered}
 
- \verb|\drefrel[factor,base=50,base plain,value plain]{45}| $\Rightarrow$
- \drefrel[factor,base=50,base plain,value plain]{45}
 
- \DescribeMacro{/dref/factor}
+ \DescribeMacro{increase by=\meta{key or val}}
+ \DescribeMacro{overhead of=\meta{key or val}}
 
- Is a base relation type, which cannot be mixed with other relation
- types. It simply divides the given value by the base value.
-
- \[\cmd{\drefresult} = \frac{\texttt{value}}{\texttt{base}}\]
-
- \DescribeMacro{/dref/increase}
- \DescribeMacro{/dref/overhead}
-
- Is a base relation type. It calculates the overhead factor a value
- show toward the base value. \texttt{increase} and  \texttt{overhead}
- are synonyms.
+ It calculates the overhead factor towards the base value.
+ \texttt{increase by} and \texttt{overhead of} are synonyms.
 
  \[\cmd{\drefresult} = \frac{\texttt{value} -
- \texttt{base}}{\texttt{base}}\]
+ \texttt{arg}}{\texttt{arg}}\]
 
- \verb|\drefrel[overhead,base=50,base plain,value plain]{45}| $\Rightarrow$
- \drefrel[overhead,base=50,base plain,value plain]{45}
+ \verb|\drefrel[overhead of=50,fixed]{45}| $\Rightarrow$
+ \drefrel[overhead of=50,fixed]{45}
 
+ \DescribeMacro{delta=\meta{key or val}}
 
- \DescribeMacro{/dref/delta}
-
- Is a base relation type. It calculates the difference between value
+ Calculates the difference between value
  and base.
 
- \[\cmd{\drefresult} = \texttt{value} - \texttt{base}\]
+ \[\cmd{\drefresult} = \texttt{value} - \texttt{arg}\]
 
- \verb|\drefrel[delta,base=50,base plain,value plain]{45}| $\Rightarrow$
- \drefrel[delta,base=50,base plain,value plain]{45}
+ \verb|\drefrel[delta=50]{45}| $\Rightarrow$
+ \drefrel[delta=50]{45}
 
- \DescribeMacro{/dref/scale}
- \DescribeMacro{/dref/product}
+ \DescribeMacro{scale=\meta{key or val}}
+ \DescribeMacro{product=\meta{key or val}}
 
- Is a base-relation type. It calculates the product of value and base.
+It calculates the product of value and base.
 
- \[\cmd{\drefresult} = \texttt{value} \cdot \texttt{base}\]
+ \[\cmd{\drefresult} = \texttt{value} \cdot \texttt{arg}\]
 
- \verb|\drefrel[scale,base=50,base plain,value plain]{45}| $\Rightarrow$
- \drefrel[scale,base=100,base plain,value plain]{0.45}
+ \verb|\drefrel[scale by=2]{45}| $\Rightarrow$
+ \drefrel[scale by=2]{45}
 
- \DescribeMacro{/dref/percent}
+ \DescribeMacro{percent}
 
  Is a post-processing type. It calculates the percent value from a fraction.
 
  \[\cmd{\drefresult} = \cmd{\drefresult} \cdot 100.0 \]
 
- \noindent\verb|\drefrel[factor,percent,base=/med A/mice count]{/med A/recovered}| \\
- \mbox{}\hspace{1cm}$\Rightarrow$ \drefrel[factor,percent,base=/med A/mice count]{/med A/recovered}
+ \noindent\verb|\drefrel[increase by=/control group/dead after 24h,percent]{/med A/dead after 24h}| \\
+ \mbox{}\hspace{1cm}$\Rightarrow$ \drefrel[increase by=/control
+ group/dead after 24h,percent]{/med A/dead after 24h}
 
-  \DescribeMacro{/dref/abs}
+\DescribeMacro{abs}
 
- Is a post-processing type. It takes the absolute value.
+ Take the absolute value.
 
  \[\cmd{\drefresult} = \mid \cmd{\drefresult} \mid \]
- \verb|\drefrel[overhead,abs,base=50,base plain,value plain]{45}| $\Rightarrow$
- \drefrel[overhead,abs,base=50,base plain,value plain]{45}
+ \verb|\drefrel[overhead of=50, abs]{45}| $\Rightarrow$
+ \drefrel[overhead of=50, abs]{45}
 
-  \DescribeMacro{/dref/negate}
+  \DescribeMacro{negate}
 
  Is a post-processing type. It negates the value.
 
  \[\cmd{\drefresult} = \cmd{\drefresult} \cdot -1.0 \]
 
- \noindent\verb|\drefrel[factor,negate,base=/med A/mice count]{/med A/recovered}| \\
- \mbox{}\hspace{1cm}$\Rightarrow$ \drefrel[factor,negate,base=/med A/mice count]{/med A/recovered}
+ \noindent\verb|\drefrel[factor of=/med A/mice count,negate]{/med A/recovered}| \\
+ \mbox{}\hspace{1cm}$\Rightarrow$ \drefrel[factor of=/med A/mice count,negate]{/med A/recovered}
 
- \DescribeMacro{/dref/divide}
+ \DescribeMacro{divide}
+ \DescribeMacro{divide by}
 
- Is a post-processing type. Divides the result by a contant
- factor. The argument must be a plain number.
+
+ Divides the result by a factor.
 
  \[\cmd{\drefresult} = \cmd{\drefresult} \cdot \{divide\} \]
 
- \noindent\verb|\drefrel[value plain,divide=1e6]{1453342654}|
+ \noindent\verb|\drefrel[divide by=1e6]{1453342654}|
  $\Rightarrow$
- \drefrel[value plain,divide=1e6]{1453342654}
-
+ \drefrel[/pgf/fpu,divide by=1e6]{1453342654}
 
  \DescribeMacro{\drefprojection\{\meta{from}\}\{\meta{to}\}\{\meta{projection}\}}
 
@@ -410,17 +396,17 @@
  \drefprojection{/control group}{/projection}{
        \id{mice race} % identity function
        \rename{mice count}{count} % renaming of points
-       \calc{data("/dead after 24h")+data("/dead after 48h")}{died}
+       \calc{data("/dead after 48h")-data("/dead after 24h")}{died}
  }
 
  \begin{quote}
    \begin{verbatim}\drefprojection{/control group}{/projection}{
        \id{mice race} % identity function
        \rename{mice count}{count} % renaming of points
-       \calc{data("/dead after 24h")+data("/dead after 48h")}{died}
+       \calc{data("/dead after 24h")-data("/dead after 48h")}{died}
      }\end{verbatim}
 
-   \verb|\dref*{/projection/died}| $\Rightarrow$ \dref*{/projection/died}\\
+   \verb|\dref*{/projection/died}| $\Rightarrow$ \dref{/projection/died}\\
    \verb|\dref*{/projection/mice race}| $\Rightarrow$ \dref*{/projection/mice race}\\
    \verb|\dref{/projection/count}| $\Rightarrow$ \dref{/projection/count}
  \end{quote}
