@@ -90,6 +90,8 @@
   .is family,
   .search also={/pgf/number format},
   % The @init action is used to initialize all other actions
+  @[/.code={\begingroup},
+  @]/.code={\endgroup},
   @init/.style={},
   % The \drefresult macro holds the current value,
   % it can be set by value=
@@ -118,7 +120,7 @@
   % The @set action is used to pipe out \drefresult, before we can
   % print it. For example, we can use it to save the result to a new
   % key.
-  @init/.append style={@set/.code={}},
+  @init/.append style={@set/.code={\xdef\drefresult{\drefresult}}},
   set/.style={
     @set/.append code={%
       \dref@set{\drefprefix #1}{\drefresult}%
@@ -131,8 +133,14 @@
         \noexpand\dref@set@fromaux{\drefprefix #1}{\drefresult}}%
     }
   },
+  @to macro/.style={@set/.append code={\edef#1{\drefresult}}},
   to macro/.style={
-    @set/.append code={\edef#1{\drefresult}}
+    @set/.append code={%
+      \aftergroup\edef%
+      \aftergroup#1%
+      \aftergroup{%
+        \aftergroup\drefresult%
+        \aftergroup}}
   },
   %
   ignoremissing/.is if={dref@ignoremissing},
@@ -197,17 +205,17 @@
 % From here on, everything should be implemented using pgfkeys
 \protected\def\dref{\@ifstar\dref@starred\dref@unstarred}
 \newcommand{\dref@unstarred}[2][]{% Unstarred
-  \drefkeys{@init, print=pgf, @get key={#2}, #1, @print, @set,%
+  \drefkeys{@[, @init, print=pgf, @get key={#2}, #1, @print, @set,@],%
     @annotate={\textbackslash dref[#1]\{#2\}}%
   }%
 }
 \newcommand{\dref@starred}[2][]{%
-  \drefkeys{@init, print=raw, @get key={#2}, #1, @print, @set,%
-    @annotate={\textbackslash dref*[#1]\{#2\}}%
+  \drefkeys{@[, @init, print=raw, @get key={#2}, #1, @print, @set,@],%
+    @annotate={\textbackslash dref*[#1]\{#2\},}%
   }%
 }
 \def\drefgetvalue#1#2{%
-  \drefkeys{@init, @get key={#1}, to macro={#2}, @set}%
+  \drefkeys{@init, @get key={#1}, @to macro={#2}, @set}%
 }
 \def\drefvalueof#1{%
   \drefkeys{@init, @check key={#1}, @load key={#1}, print=raw, @print}%
@@ -371,11 +379,11 @@
 
 \protected\def\drefcalc{\@ifstar\drefcalc@starred\drefcalc@unstarred}
 \newcommand{\drefcalc@unstarred}[2][]{% Unstarred
-  \drefkeys{@init, print=pgf, @calc pgf={#2}, #1, @calc, @print, @set,%
+  \drefkeys{@[,@init, print=pgf, @calc pgf={#2}, #1, @calc, @print, @set,@],%
             @annotate={\textbackslash drefcalc[#1]\{#2\}}}%
 }
 \newcommand{\drefcalc@starred}[2][]{ % Starred
-  \drefkeys{@init, @calc pgf={#2}, #1, @calc, @set,%
+  \drefkeys{@[,@init, @calc pgf={#2}, #1, @calc, @set,@],%
     @annotate={\textbackslash \drefcalc*[#1]\{#2\}}%
   }%
 }
@@ -671,12 +679,12 @@
 \def\drefrel{\@ifstar\drefrel@starred\drefrel@unstarred}
 
 \newcommand{\drefrel@unstarred}[2][]{%
-  \drefkeys{@init, print=pgf, @get key or value={#2}, #1, @calc, @print, @set,%
+  \drefkeys{@[,@init, print=pgf, @get key or value={#2}, #1, @calc, @print, @set,@],%
     @annotate={\textbackslash drefrel[#1]\{#2\}}}
 }
 
 \newcommand{\drefrel@starred}[2][]{%
-  \drefkeys{@init, @get key or value={#2}, #1, @calc, @print, @set,%
+  \drefkeys{@[,@init, @get key or value={#2}, #1, @calc, @print, @set,@],%
     @annotate={\textbackslash drefrel[#1]\{#2\}}}
 }
 
