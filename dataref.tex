@@ -24,6 +24,7 @@
 \usepackage{listings}
 \usepackage{pdfcomment}
 \usepackage{siunitx}
+\usepackage{pgffor}
 \usepackage{filecontents}
 \begin{filecontents}{datapoints.tex}
 \drefset{/control group/mice race}{Black Six}
@@ -219,25 +220,20 @@ include all dead mice before.}
   \verb|\drefcalc[precision=5,fixed]{1/3}| $\Rightarrow$ \drefcalc[fixed,precision=5]{1/3}
  \end{quote}
 
- \cmd{\drefcalc} works as well in a \textbf{/pgf/fpu} environment or a normal one. The FPU feature of
+ \cmd{\drefcalc} works always in a \textbf{/pgf/fpu} environment. The FPU feature of
  pgfmath is used to handle large numbers, which may occur often when handling experiment data
  points.
 
- \begin{quote}
-
- \end{quote}
- \dreflet{A=123456789,B=987654321, a=12, b=98}
-
-
+ \def\A{123456789}\def\B{987654321}\def\a{12}\def\b{98}
 
  \begin{tabular}{lrr}
- \multicolumn{3}{l}{\cmd{\dreflet\{A=123456789, B=987654321, a=12, b=98\}}}       \\
-\toprule
+ \multicolumn{3}{l}{\verb|\def\A{123456789}\def\B{987654321}\def\a{12}\def\b{98}|}       \\
+ \toprule
  Macro                            & Inserted Text             & \cmd{\drefresult} \\\midrule
- \verb|\drefcalc[/pgf/fpu]{A/B}|  & \drefcalc[/pgf/fpu]{A/B}  & \drefcalc*[/pgf/fpu]{A/B}\drefresult       \\
- \verb|\drefcalc{a/b}|            & \drefcalc[]{a/b}          & \drefcalc*[]{a/b}\drefresult       \\
- \verb|\drefcalc*[/pgf/fpu]{A/B}| & \drefcalc*[/pgf/fpu]{A/B} & \drefcalc*[/pgf/fpu]{A/B}\drefresult       \\
- \verb|\drefcalc*{a/b}|           & \drefcalc*[]{a/b}         & \drefcalc*[]{a/b}\drefresult       \\
+ \verb|\drefcalc{\A /\B}|  & \drefcalc{\A /\B}  & \drefcalc*{\A/\B}\drefresult       \\
+ \verb|\drefcalc{\a /\b}|            & \drefcalc[]{\a /\b}          & \drefcalc*{\a/\b}\drefresult       \\
+ \verb|\drefcalc*{\A/ \B}| & \drefcalc*{\A/\B} & \drefcalc*{\A /\B}\drefresult       \\
+ \verb|\drefcalc*{\a /\b}|           & \drefcalc*{\a/ \b}         & \drefcalc*{\a /\b}\drefresult       \\
  \bottomrule
  \end{tabular}
 
@@ -251,37 +247,6 @@ include all dead mice before.}
   \verb|\drefformat[fixed,precision=1]{\drefresult}|$\Rightarrow$ \drefformat[fixed,precision=1]{\drefresult}\\
   \verb|\drefformat[sci]{100000}| $\Rightarrow$ \drefformat[sci]{100000}
 \end{quote}
-
-
- \DescribeMacro{let=\{\meta{lets}\}}
- \DescribeMacro{\dreflet\{\meta{lets}\}}
-
- Since symbolic key names can get long, dataref has the possibility to define variables for use
- within mathematical expression from other expressions. These "let"-bindings can either be defined
- locally for a \cmd{\drefcalc} commando with a pgf key or globally with \cmd{\dreflet}.
-
- \begin{quote}
-  \verb|\drefcalc[let={A=12*20,B=\cg{recovered}}]{A/B}| $\Rightarrow$ \drefcalc[/dref/let={B=data("/control group/recovered"),A=12*20}]{A/B}\\
-  \verb|\drefcalc[let={X=100}]{30/X}| $\Rightarrow$ \drefcalc[/dref/let={X=100}]{30/X}
- \end{quote}
-
- The bindings for \cmd{\drefcalc} are only local to that macro
- call. Defining a binding for the current group can be done with
- \cmd{\dreflet}.
-
-
- \begin{quote}
-   \verb|\newcommand{\cg}[1]{data("/control group/#1")}|\newcommand{\cg}[1]{data("/control group/#1")}\\
-   \verb|\dreflet{percent=data("/med A/mice count")/100}|\dreflet{percent=data("/med A/mice count")/100}\\
-
-   The result clearly shows that a lorem ipsum kills\\
-   \verb|\drefcalc{\cg{dead after 24h}/percent}| percent within 24
-   and \verb|\drefcalc{\cg{dead after 28h}/percent}| percent within 48 hours.
-
-   The result cleary shows that a lorem ipsum kills
-   \drefcalc{\cg{dead after 24h}/percent} percent within 24
-   and \drefcalc{\cg{dead after 48h}/percent} percent within 48 hours.
- \end{quote}
 
 \subsection{Units and Unit Scaling}
 
@@ -297,11 +262,19 @@ drefset'%
   unit/format default=siunitx,
   unit/new scala={1/y,365/d,24/h,60/m,60/s,1000/ms,1000/us,1000/ns},
   unit/new scala={1/\second,1000/\milli\second,1000/\micro\second,1000/\nano\second},
+  unit/new scala={1/\kilo\joule,1000/\joule,1000/\milli\joule,1000/\micro\joule,1000/\nano\joule},
+}
+
+
+\foreach \a in {1234, 4135413, 213516513245, 24} {%
+  \noindent\a
+     $\rightarrow$ \drefformat[unit=\nano\joule,unit/scale to=\milli\joule]{\a}
+     $\rightarrow$ \drefformat[unit=\nano\joule,unit/scale to auto]{\a}\\
 }
 
 
 dref,drefrel:'%
-\dref{/duration};\drefrel[delta=/duration B]{/duration}'%
+\dref[unit=\joule]{/duration};\drefrel[delta=/duration B]{/duration}'%
 
 drefcalc:'%
 \drefcalc[]{d(/duration) + 2}--after:\drefresult**\drefunit%
@@ -310,7 +283,7 @@ drefcalc:'%
 From save:'\drefcalc[ignoremissing]{d(/lateron)+d(/lateron 2)}'
 
 drefcalc:'%
-\drefcalc[/pgf/fpu,scale by=2,unit/scale to auto]{d(/duration) + 2}--after:\drefresult**\drefunit%
+\drefcalc[scale by=2,unit/scale to auto]{d(/duration) + 2}--after:\drefresult**\drefunit%
 '
 
 \drefsave[unit=\milli\second]{/lateron}{3}
@@ -421,7 +394,7 @@ It calculates the product of value and base.
 
  \noindent\verb|\drefrel[divide by=1e6]{1453342654}|
  $\Rightarrow$
- \drefrel[/pgf/fpu,divide by=1e6]{1453342654}
+ \drefrel[divide by=1e6]{1453342654}
 
  \DescribeMacro{\drefprojection\{\meta{from}\}\{\meta{to}\}\{\meta{projection}\}}
 
@@ -501,7 +474,7 @@ It calculates the product of value and base.
  Of the more than thirty infected mice...
  \end{verbatim}
  \drefassert{data("/control group/mice count") > 30}
- \begingroup \pgfset{/pgf/fpu} \drefassert{data("/control group/mice
+ \begingroup \drefassert{data("/control group/mice
  count") > 30} \endgroup
 
  The \textbf{noassert} package options disables the latex abortion. In

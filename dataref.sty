@@ -104,6 +104,7 @@
   .search also={/pgf/number format},
   % The @init action is used to initialize all other actions
   @[/.code={\begingroup%
+    \pgfkeys{/pgf/fpu}% No more dimensions too large
     \def\drefunit{}% At first we are unitless
     \aftergroup\edef%
     \aftergroup\drefresult%
@@ -281,7 +282,7 @@
   \drefkeys{@[,@init, path={#1}, to macro={#2}, @get, @set, @]}%
 }
 \def\drefvalueof#1{%
-  \drefkeys{@[, @init, print=raw, @check key={#1}, @load key to={#1}{\drefvalue}{\drefunit}, print=raw, @print, @]}%
+  \pgfkeysvalueof{\dref@datapath \drefprefix #1}%
 }
 
 %% dref@ifstrmatch is copied from etextools, but etextools is
@@ -360,17 +361,6 @@
     \dref@usagereport@referenced{#1}{#2}%
   \else\relax\fi%
 }
-\drefkeys{
-  let/.code={\dreflet{#1}}
-}
-
-\def\dreflet#1{%
-  \def\@tmp##1=##2;{\pgfmathdeclarefunction*{##1}{0}{\pgfmathparse{##2}}}%
-  \renewcommand*{\do}[1]{\@tmp##1;}%
-  \ifstrempty{#1}{}{%
-    \docsvlist{#1}%
-  }%
-}
 
 
 % The data("") || d() Parser
@@ -432,8 +422,8 @@
   },
   @calc pgf/.style={
     @calc/.append code={%
-      \dref@parser{#1}{\dref@calc@@argA}%
-      \pgfmathparse{\dref@calc@@argA}%
+      \dref@parser{#1}{\dref@calc@@ready}%
+      \pgfmathparse{\dref@calc@@ready}%
       \pgfmathprintnumberto[fixed,assume math mode=true,%
                             precision=10,1000 sep={}]%
                             {\pgfmathresult}{\drefresult}%
@@ -451,21 +441,11 @@
     @annotate={\textbackslash \drefcalc*[#1]\{#2\}}%
   }%
 }
-\newcommand{\dref@format}[2][]{%
-  \pgfmathprintnumber[#1]{#2}%
-}
+
 \newcommand{\drefformat}[2][]{%
-  \drefkeys{@init, print=default, value={#2}, #1, @print, @set}%
+  \drefkeys{@[,@init, print=default, value={#2}, #1, @calc, @print, @set,@]}%
 }
 
-\pgfmathdeclarefunction{data}{1}{%
-  \begingroup%
-    \drefref{#1}%
-    \drefgetvalue{#1}{\dref@math@value}%
-    \pgfmathparse{\dref@math@value}%
-    \pgfmath@smuggleone\pgfmathresult%
-  \endgroup%
-}
 \long\def\drefprojection#1#2#3{%
   \begingroup%
   \def\rename##1##2{%
@@ -584,7 +564,7 @@
     {\hypertarget{#1}{\dref@usagereport@strippath{#1}}}%
     {\dref@usagereport@strippath{#1}}}%
   & \dref@usagereport@formatreferencelist{#1}%
-  & \drefifdefined{#1}{\drefvalueof{#1}}{\textbf{undefined}}%
+  & \drefifdefined{#1}{\dref*[@reference key/.code={}]{#1}}{\textbf{undefined}}%
 }
 
 \def\drefusagereportaftergroup{}
@@ -878,26 +858,17 @@
         \pgfkeys{\dref@unit@key/.get=\dref@unit@factor}%
         \pgfmathparse{\@@score{\drefunit@bestvalue} < \@@score{\drefresult \dref@unit@factor}}%
         \pgfmathprintnumberto[assume math mode]{\pgfmathresult}{\pgfmathresult}%
-        \typeout{\drefunit \pgfmathresult \detokenize{####1}}%
+        %\typeout{\drefunit \pgfmathresult \detokenize{####1}}%
         \ifdim\pgfmathresult pt=1 pt%
           \pgfmathparse{(\drefresult) \dref@unit@factor}%
           \pgfmathprintnumberto[fixed,assume math mode=true, precision=10,1000 sep={}]%
                                 {\pgfmathresult}{\drefunit@bestvalue}%
-                \def\drefunit@best{####1}%
+          \def\drefunit@best{####1}%
            %\typeout{\expandafter\detokenize\expandafter{\drefunit} to
            %  \detokenize{####1} : \drefunit@bestvalue}%
         \fi%
       }%
-      % Do whole operation with FPU
-      \pgflibraryfpuifactive{%
-        \def\dref@fpudisable{}%
-      }{%
-        % FPU is not active
-        \pgfkeys{/pgf/fpu}%
-        \def\dref@fpudisable{\pgfkeys{/pgf/fpu=false}}%
-      }%
       \dolistloop\dref@unit@scala%
-      \dref@fpudisable%
       \edef\drefresult{\drefunit@bestvalue}%
       \edef\drefunit{\expandonce{\drefunit@best}}%
       }{}% ! \drefunit=\empty
