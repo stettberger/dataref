@@ -286,6 +286,33 @@ include all dead mice before.}
 
 Datapoints can have a unit.
 
+drefset'%
+\drefset[unit=ms]{/duration B}{2}%
+\drefset[unit=ms]{/duration}{5555}%
+\drefset[unit=h]{/diff}{4}%
+'
+
+\drefkeys{
+  unit/new scala={1/y,365/d,24/h,60/m,60/s,1000/ms,1000/us,1000/ns},
+  unit/new scala={1/\seconds,34/\mili\seconds},
+}
+
+
+dref,drefrel:'%
+\dref{/duration};\drefrel[delta=/duration B]{/duration}'%
+
+drefcalc:'%
+\drefcalc[]{d(/duration) + 2}--after:\drefresult**\drefunit%
+'
+
+%From save:'\dref[ignoremissing]{/lateron}'
+
+drefcalc:'%
+\drefcalc[/pgf/fpu,scale by=2,unit/scale to auto]{d(/duration) + 2}--after:\drefresult**\drefunit%
+'
+
+\drefsave[unit=ms]{/lateron}{3}
+
 \subsection{Relating Datapoints}
 
  \DescribeMacro{\drefrel*[\meta{opts}]\{\meta{key}\}}
