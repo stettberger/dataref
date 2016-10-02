@@ -706,13 +706,15 @@
   factor of/.style={%
     @get key or value to={#1}{\drefrel@tmp}{\drefrel@tmpunit},
     unit/@assert compatible=\drefrel@tmpunit,
-    @calc pgf/.expanded={(\noexpand\drefresult)/(\drefrel@tmp)}
+    @calc pgf/.expanded={(\noexpand\drefresult)/(\drefrel@tmp)},
+    @calc/.append code={\def\drefunit{}},
   },
   percent/.style={
     @calc pgf={100 * (\drefresult)},
   },
   percent of/.style={
     factor of=#1, percent,
+    @calc/.append code={\def\drefunit{}},
   },
   scale by/.style={
     @get key or value to={#1}{\drefrel@tmp}{\drefrel@tmpunit},%
@@ -731,6 +733,7 @@
     @get key or value to={#1}{\drefrel@tmp}{\drefrel@tmpunit},
     unit/@assert compatible=\drefrel@tmpunit,
     @calc pgf/.expanded={((\noexpand\drefresult)-(\drefrel@tmp))/(\drefrel@tmp)},
+    @calc/.append code={\def\drefunit{}},
   },
   increase by/.style={overhead of={#1}},
   delta/.style={
@@ -860,8 +863,7 @@
   unit/scale to auto/.default=50,
   unit/scale to auto/.style={% #1 is the optimal value
     @calc/.append code={
-      \ifx\drefunit\empty\drefunit\else % Only do the scaling, if
-                                % there is a unit
+      \dref@ifunit{%Only do the scaling, if there is a unit
       \edef\dref@unit@key{/dref/units/scala \expandafter\detokenize\expandafter{\drefunit}}%
       % Get all other units in the same scala
       \drefkeys{\dref@unit@key/.get=\dref@unit@scala}%
@@ -895,20 +897,31 @@
       \dref@fpudisable%
       \edef\drefresult{\drefunit@bestvalue}%
       \edef\drefunit{\expandonce{\drefunit@best}}%
-      \fi % ! \drefunit=\empty
+      }{}% ! \drefunit=\empty
     }
   },
   unit/format default/.initial={plain},
   unit/format/.is choice,
   unit/format/no/.style={unit/format default=no, @print unit/.code={}},
-  unit/format/plain/.style={unit/format default=plain, @print unit/.code={\,\drefunit}},
-  unit/format/typeout/.style={unit/format default=typeout, @print unit/.code={\expandafter\typeout\expandafter{\drefunit}}},
-  unit/format/siunitx/.style={unit/format default=siunitx, @print unit/.code={\,\expandafter\si\expandafter{\drefunit}}},
+  unit/format/plain/.style={
+    unit/format default=plain,
+    @print unit/.code={\dref@ifunit{\,\drefunit}{}}},
+  unit/format/typeout/.style={
+    unit/format default=typeout,
+    @print unit/.code={\dref@ifunit{\expandafter\typeout\expandafter{\drefunit}}{}}},
+  unit/format/siunitx/.style={
+    unit/format default=siunitx,
+    @print unit/.code={\dref@ifunit{\,\expandafter\si\expandafter{\drefunit}}{}}},
   unit/format/default/.style={%
     unit/format default/.get=\dref@unit@format,
     unit/format/.expand once=\dref@unit@format
   },
 }
+
+\def\dref@ifunit#1#2{%
+  \expandafter\ifblank\expandafter{\drefunit}{#2}{#1}%
+}
+
 
 \endinput
 %%

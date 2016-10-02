@@ -294,6 +294,7 @@ drefset'%
 '
 
 \drefkeys{
+  unit/format default=siunitx,
   unit/new scala={1/y,365/d,24/h,60/m,60/s,1000/ms,1000/us,1000/ns},
   unit/new scala={1/\second,1000/\milli\second,1000/\micro\second,1000/\nano\second},
 }
@@ -306,13 +307,15 @@ drefcalc:'%
 \drefcalc[]{d(/duration) + 2}--after:\drefresult**\drefunit%
 '
 
-From save:'\drefcalc[/pgf/fpu,ignoremissing,divide by=12325, unit/scale to auto=999, unit/format=siunitx]{d(/lateron)+5}'
+From save:'\drefcalc[ignoremissing]{d(/lateron)+d(/lateron 2)}'
 
 drefcalc:'%
 \drefcalc[/pgf/fpu,scale by=2,unit/scale to auto]{d(/duration) + 2}--after:\drefresult**\drefunit%
 '
 
 \drefsave[unit=\milli\second]{/lateron}{3}
+\drefsave[unit=\milli\second]{/lateron 2}{5}
+
 
 \subsection{Relating Datapoints}
 
