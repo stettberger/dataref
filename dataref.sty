@@ -175,24 +175,28 @@
 
 % Print layer
 \drefkeys{
+  @print/.style={@print result, @print unit},
   @init/.append style={
-    @print/.code={},
+    @print result/.code={},
+    @print unit/.code={}
   },
   print/.is choice,
   print/no/.style={
-    @print/.code={}
+    @print result/.code={},
+    @print unit/.code={}
   },
   print/raw/.style={
-    @print/.code={\drefresult}
+    @print result/.code={\drefresult}
   },
   print/typeout/.style={
-    @print/.append code={\typeout{#1\drefresult}}
+    @print result/.code={\typeout{#1\drefresult}},
+    @print unit/.code={\typeout{\expandonce\drefunit}},
   },
   print/show/.style={
-    @print/.append code={\show\drefresult},
+    @print result/.append code={\show\drefresult},
   },
   print/pgf/.style={
-    @print/.code={
+    @print result/.code={
       \pgfmathprintnumber{\drefresult}%
     }
   },
@@ -686,6 +690,98 @@
 \newcommand{\drefrel@starred}[2][]{%
   \drefkeys{@[,@init, @get key or value={#2}, #1, @calc, @print, @set,@],%
     @annotate={\textbackslash drefrel[#1]\{#2\}}}
+}
+
+% Unit scaling
+
+\def\timescale{}
+\def\dref@unit@key#1#2{%
+  dref@unit@\expandafter\detokenize\expandafter{#1}@\expandafter\detokenize\expandafter{#2}}
+
+\def\dref@unit@new#1{%
+  \def\dref@unit@scala{}%
+  \def\dref@unit@new@outer##1/##2,##3\@nnil{%
+    \def\dref@outer{\dref@unit@new@outer##3\@nnil}%
+    \listadd{\dref@unit@scala}{##2}%
+    \ifx##3&&%
+       \def\dref@outer{}%
+    \fi%
+    \dref@outer%
+  }%
+  \dref@unit@new@outer#1,\@nnil%
+  \def\dref@unit@new@outer##1/##2,##3\@nnil{%
+    \def\dref@outer{\dref@unit@new@outer##3\@nnil}%
+    \pgfkeys{/dref/units/\detokenize{##2} to \detokenize{##2}/.initial={* 1},%
+      /dref/units/scala \detokenize{##2}/.initial/.expand once={\dref@unit@scala}}%
+    \ifx##3&&%
+       \def\dref@outer{}%
+    \else%
+       \def\dref@unit@factor{}%
+       \dref@unit@new@inner{##2}##3\@stop%
+    \fi%
+    \dref@outer%
+  }
+  \def\dref@unit@new@inner##1##2/##3,##4\@stop{%
+    \def\dref@inner{\dref@unit@new@inner{##1}##4\@stop}%
+    \ifx##4&&\def\dref@inner{}\else\fi%
+    \edef\dref@unit@factor{\dref@unit@factor * ##2}%
+    \pgfkeys{/dref/units/\detokenize{##1} to \detokenize{##3}/.initial/.expanded={* (1 \dref@unit@factor)},%
+             /dref/units/\detokenize{##3} to \detokenize{##1}/.initial/.expanded={/ (1 \dref@unit@factor)},%
+    }%
+    \dref@inner%
+  }%
+  \dref@unit@new@outer#1,\@nnil%
+}
+
+\drefkeys{
+  new unit scale/.code={%
+     \dref@unit@new{#1}%
+  },
+  unit/.code={\def\drefunit{#1}\drefkeys{unit format=plain}},%
+  scale to unit/.code={%
+    \edef\dref@unit@key{/dref/units/\expandafter\detokenize\expandafter{\drefunit} to \detokenize{#1}}%
+    \typeout{\dref@unit@factor}%
+    \drefkeys{%
+      \dref@unit@key/.get=\dref@unit@factor,%
+      @calc pgf/.expanded={((\noexpand\drefresult) \dref@unit@factor)},%
+      unit=#1%
+    }%
+  },
+  scale auto/.default=50,
+  scale auto/.style={% #1 is the optimal value
+    @calc/.append code={
+      \edef\dref@unit@key{/dref/units/scala \expandafter\detokenize\expandafter{\drefunit}}%
+      % Get all other units in the same scala
+      \drefkeys{\dref@unit@key/.get=\dref@unit@scala}%
+      \expandafter\def\expandafter\drefunit@best\expandafter{\drefunit}%
+      \def\drefunit@bestvalue{\drefresult}%
+      \def\@@score####1{abs(1 / ( (#1) - (####1)))}%
+      \def\do####1{%
+        \edef\dref@unit@key{/dref/units/\expandafter\detokenize\expandafter{\drefunit} to \detokenize{####1}}%
+        \pgfkeys{\dref@unit@key/.get=\dref@unit@factor}%
+        \pgfmathparse{ifthenelse(%
+          \@@score{\drefunit@bestvalue} < \@@score{\drefresult \dref@unit@factor}, 1, 0)}%
+        \pgfmathprintnumberto[assume math mode]{\pgfmathresult}{\pgfmathresult}%
+        % \typeout{\drefunit \pgfmathresult \detokenize{####1}}%
+        \ifdim\pgfmathresult pt=1 pt%
+           % \typeout{\expandafter\detokenize\expandafter{\drefunit} to \detokenize{####1}}%
+           \pgfmathparse{(\drefresult) \dref@unit@factor}%
+           \pgfmathprintnumberto[fixed,assume math mode=true, precision=10,1000 sep={}]%
+                                {\pgfmathresult}{\drefunit@bestvalue}%
+           \def\drefunit@best{####1}%
+        \fi%
+      }%
+      \dolistloop\dref@unit@scala%
+      \edef\drefresult{\drefunit@bestvalue}%
+      \edef\drefunit{\expandonce{\drefunit@best}}%
+    }
+  },
+  unit format/.is choice,
+  unit format/no/.style={@print unit/.code={}},
+  unit format/plain/.style={@print unit/.code={\drefunit}},
+  unit format/typeout/.style={@print unit/.code={\expandafter\typeout\expandafter{\drefunit}}},
+  new unit scale={1/y,365/d,24/h,60/m,60/s,1000/ms,1000/us,1000/ns},
+  new unit scale={1/\seconds,34/\mili\seconds},
 }
 
 \endinput

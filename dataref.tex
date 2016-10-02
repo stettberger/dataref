@@ -180,7 +180,9 @@ include all dead mice before.}
  regular expressions are supported as patterns.
  \begin{quote}
   \verb|\drefhelp{/med A/mice race}|
- \end{quote}
+\end{quote}
+
+\subsection{Calculations and Math Tools}
 
  \DescribeMacro{\drefcalc[\meta{format}]\{\meta{expr}\}}
  \DescribeMacro{data("\meta{key}")}
@@ -247,7 +249,8 @@ include all dead mice before.}
   \verb|\drefcalc*{1/3} ABC: \drefresult| $\Rightarrow$ \drefcalc*{1/3} ABC: \drefresult\\
   \verb|\drefformat[fixed,precision=1]{\drefresult}|$\Rightarrow$ \drefformat[fixed,precision=1]{\drefresult}\\
   \verb|\drefformat[sci]{100000}| $\Rightarrow$ \drefformat[sci]{100000}
- \end{quote}
+\end{quote}
+
 
  \DescribeMacro{/dref/let=\{\meta{lets}\}}
  \DescribeMacro{\dreflet\{\meta{lets}\}}
@@ -279,17 +282,21 @@ include all dead mice before.}
    and \drefcalc{\cg{dead after 48h}/percent} percent within 48 hours.
  \end{quote}
 
+\subsection{Units and Unit Scaling}
 
+Datapoints can have a unit.
 
+\subsection{Relating Datapoints}
 
  \DescribeMacro{\drefrel*[\meta{opts}]\{\meta{key}\}}
  \DescribeMacro{\drefrel[\meta{opts}]\{\meta{key}\}}
 
- The \cmd{\drefrel} macro is used to calculate relations between a base value and a concrete key. A
- prominent example of such a relation is the percent relation. \cmd{\drefrel} allows you to write
- down intentionally what relation you want to express without thinking about a concrete
- formula. The starred version of this macro does not print anything, but sets only
- \cmd{\drefresult}.
+ The \cmd{\drefrel} macro is used to calculate relations between
+ different datapoints.. A prominent example of such a relation is the
+ percent relation. \cmd{\drefrel} allows you to write down
+ intentionally what relation you want to express without thinking
+ about a concrete formula. The starred version of this macro does not
+ print anything, but sets only \cmd{\drefresult}.
 
  \begin{quote}
  \noindent\verb|\drefrel[factor of=/med A/mice count]{/med A/recovered}| \\
@@ -411,6 +418,8 @@ It calculates the product of value and base.
    \verb|\dref{/projection/count}| $\Rightarrow$ \dref{/projection/count}
  \end{quote}
 
+ \subsection{Various handy Tools}
+
  \DescribeMacro{\drefrow\{\meta{list}\}\{\meta{macro}\}}
  \DescribeMacro{\drefrow*}
 
@@ -496,6 +505,7 @@ It calculates the product of value and base.
    \dref*{/control group/mice race}, \dref{/control group/mice count}, \drefcalc{100/3}
  \end{quote}
 
+ \subsection{Datagraphy}
 
  \DescribeMacro{\drefusagereport}
  \DescribeMacro{[usagereport]}
