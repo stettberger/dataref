@@ -205,7 +205,6 @@
     \edef\dref@firstchar{\expandafter\dref@load@ifkey@firstchar \dref@load@path\@nnil}%
     \ifcsdef{dref@ifnum@\dref@firstchar}{%
       \edef#2{\dref@load@path}%
-      \def#3{}%
     }{%
       \drefkeys{@get key to={#1}{#2}{#3}}%
     }%
@@ -815,7 +814,11 @@
   unit/new scala/.code={%
      \dref@unit@new{#1}%
   },
-  unit/.style={unit/@load={#1}, unit/@format enable},
+  unit/.style={
+    unit/@load={#1},
+    unit/@format enable,
+    @get/.append style={unit/@load={#1}}, % Override Unit from loads
+  },
   unit/@load/.code={% #1 Is plain unit
     \def\drefunit{#1}%
   },
