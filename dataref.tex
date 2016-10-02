@@ -23,6 +23,7 @@
 
 \usepackage{listings}
 \usepackage{pdfcomment}
+\usepackage{siunitx}
 \usepackage{filecontents}
 \begin{filecontents}{datapoints.tex}
 \drefset{/control group/mice race}{Black Six}
@@ -230,13 +231,13 @@ include all dead mice before.}
 
 
  \begin{tabular}{lrr}
- \multicolumn{3}{l}{\cmd{\dreflet\{A=123456789, B=987654321, a=12, b=98\}}} \\
+ \multicolumn{3}{l}{\cmd{\dreflet\{A=123456789, B=987654321, a=12, b=98\}}}       \\
 \toprule
- Macro & Inserted Text & \cmd{\drefresult} \\\midrule
- \verb|\drefcalc[/pgf/fpu]{A/B}| & \drefcalc[/pgf/fpu]{A/B} & \drefresult\\
- \verb|\drefcalc{a/b}| & \drefcalc[]{a/b} & \drefresult \\
- \verb|\drefcalc*[/pgf/fpu]{A/B}| & \drefcalc*[/pgf/fpu]{A/B} & \drefresult\\
- \verb|\drefcalc*{a/b}| & \drefcalc*[]{a/b} & \drefresult \\
+ Macro                            & Inserted Text             & \cmd{\drefresult} \\\midrule
+ \verb|\drefcalc[/pgf/fpu]{A/B}|  & \drefcalc[/pgf/fpu]{A/B}  & \drefcalc*[/pgf/fpu]{A/B}\drefresult       \\
+ \verb|\drefcalc{a/b}|            & \drefcalc[]{a/b}          & \drefcalc*[]{a/b}\drefresult       \\
+ \verb|\drefcalc*[/pgf/fpu]{A/B}| & \drefcalc*[/pgf/fpu]{A/B} & \drefcalc*[/pgf/fpu]{A/B}\drefresult       \\
+ \verb|\drefcalc*{a/b}|           & \drefcalc*[]{a/b}         & \drefcalc*[]{a/b}\drefresult       \\
  \bottomrule
  \end{tabular}
 
@@ -252,7 +253,7 @@ include all dead mice before.}
 \end{quote}
 
 
- \DescribeMacro{/dref/let=\{\meta{lets}\}}
+ \DescribeMacro{let=\{\meta{lets}\}}
  \DescribeMacro{\dreflet\{\meta{lets}\}}
 
  Since symbolic key names can get long, dataref has the possibility to define variables for use
@@ -260,8 +261,8 @@ include all dead mice before.}
  locally for a \cmd{\drefcalc} commando with a pgf key or globally with \cmd{\dreflet}.
 
  \begin{quote}
-  \verb|\drefcalc[/dref/let={A=12*20,B=\cg{recovered}}]{A/B}| $\Rightarrow$ \drefcalc[/dref/let={B=data("/control group/recovered"),A=12*20}]{A/B}\\
-  \verb|\drefcalc[/dref/let={X=100}]{30/X}| $\Rightarrow$ \drefcalc[/dref/let={X=100}]{30/X}
+  \verb|\drefcalc[let={A=12*20,B=\cg{recovered}}]{A/B}| $\Rightarrow$ \drefcalc[/dref/let={B=data("/control group/recovered"),A=12*20}]{A/B}\\
+  \verb|\drefcalc[let={X=100}]{30/X}| $\Rightarrow$ \drefcalc[/dref/let={X=100}]{30/X}
  \end{quote}
 
  The bindings for \cmd{\drefcalc} are only local to that macro
@@ -294,7 +295,7 @@ drefset'%
 
 \drefkeys{
   unit/new scala={1/y,365/d,24/h,60/m,60/s,1000/ms,1000/us,1000/ns},
-  unit/new scala={1/\seconds,34/\mili\seconds},
+  unit/new scala={1/\second,1000/\milli\second,1000/\micro\second,1000/\nano\second},
 }
 
 
@@ -305,13 +306,13 @@ drefcalc:'%
 \drefcalc[]{d(/duration) + 2}--after:\drefresult**\drefunit%
 '
 
-%From save:'\dref[ignoremissing]{/lateron}'
+From save:'\drefcalc[/pgf/fpu,ignoremissing,divide by=12325, unit/scale to auto=999, unit/format=siunitx]{d(/lateron)+5}'
 
 drefcalc:'%
 \drefcalc[/pgf/fpu,scale by=2,unit/scale to auto]{d(/duration) + 2}--after:\drefresult**\drefunit%
 '
 
-\drefsave[unit=ms]{/lateron}{3}
+\drefsave[unit=\milli\second]{/lateron}{3}
 
 \subsection{Relating Datapoints}
 

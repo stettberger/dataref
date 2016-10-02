@@ -76,10 +76,11 @@
     \pgfkeysifdefined{\dref@datapath\dref@load@path @unit}{%
       \pgfkeysgetvalue{\dref@datapath\dref@load@path @unit}{#3}%
     }{%
-      \let#3\relax%
+      \def#3{}%
     }%
   }{%
     \edef#2{\dref@defaultvalue}%
+    \def#3{}%
   }%
 }
 
@@ -87,11 +88,11 @@
   \pgfkeysifdefined{\dref@datapath\drefprefix #1}%{then}{else}
 }
 
-\def\dref@set@fromaux#1#2{%
+\def\dref@set@fromaux#1#2#3{%
   \drefifdefined{#2}{%
     \dref@warning{"\drefprefix #2" set before beginning of document, \string\drefsave{} is ignore}%
   }{%
-    \dref@set{}{#1}{#2}%
+    \dref@set{#1}{#2}{#3}%
   }%
 }
 
@@ -120,14 +121,16 @@
   },
   @]/.code={% We smuggle \drefresult after the current group
     \xdef\drefresult@smuggle{\drefresult}%
-    \xdef\drefunit@smuggle{\drefunit}%
+    \xdef\drefunit@smuggle{\expandonce\drefunit}%
     \endgroup%
   },
   @init/.style={},
   % The \drefresult macro holds the current value,
   % it can be set by value=
   prefix/.estore in={\drefprefix},prefix={},
-  value/.code={\edef\drefresult{#1}\def\drefunit{}},value=0,
+  value/.code={\edef\drefresult{#1}\def\drefunit{}},
+  value=0,
+  path/.estore in={\drefcurrentpath},
   @init/.append style={},
   % \drefresult can be set by the @load action
   @load key to/.code n args={3}{%
@@ -138,12 +141,8 @@
     @reference key={#1},
     @load key to={#1}{#2}{#3},
   },
-  @load key/.style={%
-    @load key to={#1}{\drefresult}{\drefunit}
-    unit/@format enable,
-  },
-  @get key/.style={%
-    @get key to={#1}{\drefresult}{\drefunit},
+  @get/.style={%
+    @get key to={\drefcurrentpath}{\drefresult}{\drefunit},
     unit/@format enable,
   },
   % For most commands, we want to check whether a key exists.
@@ -171,7 +170,7 @@
     set={#1},
     @set/.append code={%
       \immediate\write\@auxout{%
-        \noexpand\dref@set@fromaux{\drefresult}{\drefprefix #1}%
+        \noexpand\dref@set@fromaux{\expandonce\drefunit}{\drefresult}{\drefprefix #1}%
       }%
     }
   },
@@ -212,7 +211,7 @@
     }%
   },
   @get key or value/.style={
-    @get key or value to={#1}{\drefresult}{\drefunit},
+    @get key or value to={\drefcurrentpath}{\drefresult}{\drefunit},
     unit/@format enable,
   },
 }
@@ -246,36 +245,44 @@
     @print result/.append code={\show\drefresult},
   },
   print/pgf/.style={
-    @print result/.code={
+    @print result/.code={%
       \pgfmathprintnumber{\drefresult}%
+    }
+  },
+  print/siunitx/.style={
+    @print result/.code={%
+      \num{\drefresult}%
     }
   },
 }
 
 \newcommand{\drefset}[3][]{%
-  \drefkeys{@init, value={#3}, #1, set={#2}, @set}%
+  \drefkeys{@[, @init, value={#3}, #1, set={#2}, @set, @]}%
 }
 
-\def\drefsave#1#2{\drefkeys{@init, value={#2}, save={#1}, @set}}
+\newcommand{\drefsave}[3][]{%
+  \drefkeys{@[, @init, value={#3}, #1, save={#2}, @set, @]}%
+}
+
 \def\drefref#1{\drefkeys{@reference key={#1}}}
 
 % From here on, everything should be implemented using pgfkeys
 \protected\def\dref{\@ifstar\dref@starred\dref@unstarred}
 \newcommand{\dref@unstarred}[2][]{% Unstarred
-  \drefkeys{@[, @init, print=default, @get key={#2}, #1, @print, @set,@],%
+  \drefkeys{@[, @init, print=default, path={#2}, #1, @get, @print, @set,@],%
     @annotate={\textbackslash dref[#1]\{#2\}}%
   }%
 }
 \newcommand{\dref@starred}[2][]{%
-  \drefkeys{@[, @init, print=raw, @get key={#2}, #1, @print, @set,@],%
+  \drefkeys{@[, @init, print=raw, path={#2}, #1, @get, @print, @set,@],%
     @annotate={\textbackslash dref*[#1]\{#2\},}%
   }%
 }
 \def\drefgetvalue#1#2{%
-  \drefkeys{@[,@init, @get key={#1}, to macro={#2}, @set, @]}%
+  \drefkeys{@[,@init, path={#1}, to macro={#2}, @get, @set, @]}%
 }
 \def\drefvalueof#1{%
-  \drefkeys{@[, @init, @check key={#1}, @load key={#1}, print=raw, @print, @]}%
+  \drefkeys{@[, @init, print=raw, @check key={#1}, @load key to={#1}{\drefvalue}{\drefunit}, print=raw, @print, @]}%
 }
 
 %% dref@ifstrmatch is copied from etextools, but etextools is
@@ -431,7 +438,6 @@
       \pgfmathprintnumberto[fixed,assume math mode=true,%
                             precision=10,1000 sep={}]%
                             {\pgfmathresult}{\drefresult}%
-      \typeout{PARSE: #1 -- \drefresult -- \drefunit}%
      }
   }
 }
@@ -439,7 +445,7 @@
 \protected\def\drefcalc{\@ifstar\drefcalc@starred\drefcalc@unstarred}
 \newcommand{\drefcalc@unstarred}[2][]{% Unstarred
   \drefkeys{@[,@init, print=default, @calc pgf={#2}, #1, @calc, @print, @set,@],%
-            @annotate={\textbackslash drefcalc[#1]\{#2\}}}%
+    @annotate={\textbackslash drefcalc[#1]\{#2\}}}%
 }
 \newcommand{\drefcalc@starred}[2][]{ % Starred
   \drefkeys{@[,@init, @calc pgf={#2}, #1, @calc, @set,@],%
@@ -450,7 +456,7 @@
   \pgfmathprintnumber[#1]{#2}%
 }
 \newcommand{\drefformat}[2][]{%
-  \drefkeys{@init, value={#2}, #1, @print, @set}%
+  \drefkeys{@init, print=default, value={#2}, #1, @print, @set}%
 }
 
 \pgfmathdeclarefunction{data}{1}{%
@@ -464,7 +470,7 @@
 \long\def\drefprojection#1#2#3{%
   \begingroup%
   \def\rename##1##2{%
-    \drefkeys{@init, @get key={#1/##1}, set={#2/##2}, @set}%
+    \drefkeys{@init, path={#1/##1}, set={#2/##2}, @get, @set}%
   }%
   \def\id##1{\rename{##1}{##1}}%
   \def\calc##1##2{%
@@ -717,7 +723,7 @@
   divide by/.style={
     @get key or value to={#1}{\drefrel@tmp}{\drefrel@tmpunit},%
     unit/@assert unitless=\drefrel@tmpunit,
-    @calc pgf/.expanded={(\drefrel@tmp) / (\noexpand\drefresult)},
+    @calc pgf/.expanded={(\noexpand\drefresult) / (\drefrel@tmp)},
   },
   divide/.style={divide by},
   product/.style={scale by={#1}},
@@ -744,18 +750,18 @@
 
 \newcommand{\drefrel@unstarred}[2][]{%
   \drefkeys{@[,
-    @init, @get key or value={#2},
-    print=default, #1,
-    @calc, @print, @set,
-    @],%
+      @init,
+      path={#2}, print=default, #1,
+      @get key or value, @calc, @print, @set,
+    @],
     @annotate={\textbackslash drefrel[#1]\{#2\}}}%
 }
 
 \newcommand{\drefrel@starred}[2][]{%
-  \drefkeys{@[,
-    @init,@get key or value={#2},
-    /utils/exec=Z, #1,
-    @calc, @set,
+  \drefkeys{
+    @[, @init,
+      path={#2}, #1,
+      @get key or value, @calc, @set,
     @],
     @annotate={\textbackslash drefrel[#1]\{#2\}},
   }%
@@ -812,7 +818,6 @@
   },
   unit/@try override/.code={% #1 must be unit holding macro
     \ifx#1\empty#1\else%
-       \typeout{UNIT: #1 \drefunit}%
        \expandafter\def\expandafter\drefunit\expandafter{#1}%
     \fi%
   },
@@ -846,7 +851,6 @@
   },
   unit/scale to/.code={%
     \edef\dref@unit@key{/dref/units/\expandafter\detokenize\expandafter{\drefunit} to \detokenize{#1}}%
-    \typeout{\dref@unit@factor}%
     \drefkeys{%
       \dref@unit@key/.get=\dref@unit@factor,%
       @calc pgf/.expanded={((\noexpand\drefresult) \dref@unit@factor)},%
@@ -856,6 +860,8 @@
   unit/scale to auto/.default=50,
   unit/scale to auto/.style={% #1 is the optimal value
     @calc/.append code={
+      \ifx\drefunit\empty\drefunit\else % Only do the scaling, if
+                                % there is a unit
       \edef\dref@unit@key{/dref/units/scala \expandafter\detokenize\expandafter{\drefunit}}%
       % Get all other units in the same scala
       \drefkeys{\dref@unit@key/.get=\dref@unit@scala}%
@@ -865,28 +871,39 @@
       \def\do####1{%
         \edef\dref@unit@key{/dref/units/\expandafter\detokenize\expandafter{\drefunit} to \detokenize{####1}}%
         \pgfkeys{\dref@unit@key/.get=\dref@unit@factor}%
-        \pgfmathparse{ifthenelse(%
-          \@@score{\drefunit@bestvalue} < \@@score{\drefresult \dref@unit@factor}, 1, 0)}%
+        \pgfmathparse{\@@score{\drefunit@bestvalue} < \@@score{\drefresult \dref@unit@factor}}%
         \pgfmathprintnumberto[assume math mode]{\pgfmathresult}{\pgfmathresult}%
-        % \typeout{\drefunit \pgfmathresult \detokenize{####1}}%
+        \typeout{\drefunit \pgfmathresult \detokenize{####1}}%
         \ifdim\pgfmathresult pt=1 pt%
-           % \typeout{\expandafter\detokenize\expandafter{\drefunit} to \detokenize{####1}}%
-           \pgfmathparse{(\drefresult) \dref@unit@factor}%
-           \pgfmathprintnumberto[fixed,assume math mode=true, precision=10,1000 sep={}]%
+          \pgfmathparse{(\drefresult) \dref@unit@factor}%
+          \pgfmathprintnumberto[fixed,assume math mode=true, precision=10,1000 sep={}]%
                                 {\pgfmathresult}{\drefunit@bestvalue}%
-           \def\drefunit@best{####1}%
+                \def\drefunit@best{####1}%
+           %\typeout{\expandafter\detokenize\expandafter{\drefunit} to
+           %  \detokenize{####1} : \drefunit@bestvalue}%
         \fi%
       }%
+      % Do whole operation with FPU
+      \pgflibraryfpuifactive{%
+        \def\dref@fpudisable{}%
+      }{%
+        % FPU is not active
+        \pgfkeys{/pgf/fpu}%
+        \def\dref@fpudisable{\pgfkeys{/pgf/fpu=false}}%
+      }%
       \dolistloop\dref@unit@scala%
+      \dref@fpudisable%
       \edef\drefresult{\drefunit@bestvalue}%
       \edef\drefunit{\expandonce{\drefunit@best}}%
+      \fi % ! \drefunit=\empty
     }
   },
   unit/format default/.initial={plain},
   unit/format/.is choice,
-  unit/format/no/.style={@print unit/.code={}},
-  unit/format/plain/.style={@print unit/.code={\drefunit}},
-  unit/format/typeout/.style={@print unit/.code={\expandafter\typeout\expandafter{\drefunit}}},
+  unit/format/no/.style={unit/format default=no, @print unit/.code={}},
+  unit/format/plain/.style={unit/format default=plain, @print unit/.code={\,\drefunit}},
+  unit/format/typeout/.style={unit/format default=typeout, @print unit/.code={\expandafter\typeout\expandafter{\drefunit}}},
+  unit/format/siunitx/.style={unit/format default=siunitx, @print unit/.code={\,\expandafter\si\expandafter{\drefunit}}},
   unit/format/default/.style={%
     unit/format default/.get=\dref@unit@format,
     unit/format/.expand once=\dref@unit@format
