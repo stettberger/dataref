@@ -669,15 +669,15 @@
 \newcommand{\drefassert}[1]{%
   \begingroup%
     \drefcalc*{#1}%
-    \expandafter\ifstrequal\expandafter{\drefresult}{1}{%
-      \dref@warning{Assertion holds: #1}%
-    }{%
+    \ifdim\drefresult pt = 0pt%
       \ifdref@noassert%
         \dref@warning{Assertion failed: #1}%
       \else%
         \dref@error{Assertion failed: #1}%
-      \fi%
-   }%
+        \fi%
+     \else
+       \dref@warning{Assertion holds: #1}%
+     \fi%
   \endgroup%
 }
 \drefkeys{%
