@@ -96,8 +96,9 @@
   }%
 }
 
-\def\drefprefix{}
 \def\drefkeys#1{\pgfkeys{/dref/.cd,#1}}
+\def\drefprefix{\pgfkeysvalueof{/dref/prefix}}
+
 
 \drefkeys{
   .is family,
@@ -128,7 +129,7 @@
   @init/.style={},
   % The \drefresult macro holds the current value,
   % it can be set by value=
-  prefix/.estore in={\drefprefix},prefix={},
+  prefix/.initial={},
   value/.code={\edef\drefresult{#1}\def\drefunit{}},
   value=0,
   path/.estore in={\drefcurrentpath},
