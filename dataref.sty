@@ -105,7 +105,7 @@
   .search also={/pgf/number format},
   % The @init action is used to initialize all other actions
   @[/.code={\begingroup%
-    \pgfkeys{/pgf/fpu}% No more dimensions too large
+    \pgfkeys{/pgf/fpu,/pgf/fpu/output format=fixed}% No more dimensions too large
     \def\drefunit{}% At first we are unitless
     \aftergroup\edef%
     \aftergroup\drefresult%
@@ -270,12 +270,12 @@
 % From here on, everything should be implemented using pgfkeys
 \protected\def\dref{\@ifstar\dref@starred\dref@unstarred}
 \newcommand{\dref@unstarred}[2][]{% Unstarred
-  \drefkeys{@[, @init, print=default, path={#2}, #1, @get, @print, @set,@],%
+  \drefkeys{@[, @init, print=default, path={#2}, #1, @get, @calc, @print, @set,@],%
     @annotate={\textbackslash dref[#1]\{#2\}}%
   }%
 }
 \newcommand{\dref@starred}[2][]{%
-  \drefkeys{@[, @init, print=raw, path={#2}, #1, @get, @print, @set,@],%
+  \drefkeys{@[, @init, print=raw, path={#2}, #1, @get, @calc, @print, @set,@],%
     @annotate={\textbackslash dref*[#1]\{#2\},}%
   }%
 }
@@ -425,9 +425,7 @@
     @calc/.append code={%
       \dref@parser{#1}{\dref@calc@@ready}%
       \pgfmathparse{\dref@calc@@ready}%
-      \pgfmathprintnumberto[fixed,assume math mode=true,%
-                            precision=10,1000 sep={}]%
-                            {\pgfmathresult}{\drefresult}%
+      \edef\drefresult{\pgfmathresult}%
      }
   }
 }
@@ -858,12 +856,10 @@
         \edef\dref@unit@key{/dref/units/\expandafter\detokenize\expandafter{\drefunit} to \detokenize{####1}}%
         \pgfkeys{\dref@unit@key/.get=\dref@unit@factor}%
         \pgfmathparse{\@@score{\drefunit@bestvalue} < \@@score{\drefresult \dref@unit@factor}}%
-        \pgfmathprintnumberto[assume math mode]{\pgfmathresult}{\pgfmathresult}%
         %\typeout{\drefunit \pgfmathresult \detokenize{####1}}%
-        \ifdim\pgfmathresult pt=1 pt%
+        \ifdim\pgfmathresult pt=1.0 pt%
           \pgfmathparse{(\drefresult) \dref@unit@factor}%
-          \pgfmathprintnumberto[fixed,assume math mode=true, precision=10,1000 sep={}]%
-                                {\pgfmathresult}{\drefunit@bestvalue}%
+          \edef\drefunit@bestvalue{\pgfmathresult}%
           \def\drefunit@best{####1}%
            %\typeout{\expandafter\detokenize\expandafter{\drefunit} to
            %  \detokenize{####1} : \drefunit@bestvalue}%
