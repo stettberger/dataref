@@ -260,7 +260,15 @@
 }
 
 \newcommand{\drefset}[3][]{%
-  \drefkeys{@[, @init, value={#3}, #1, set={#2}, @set, @]}%
+  % I put this version here, since it
+  % provides a sped up mass setting of keys
+  \begingroup%
+    \edef\drefresult{#3}%
+    \def\drefunit{}%
+    \drefkeys{#1}%
+    \expandafter\dref@set\expandafter{\drefunit}%
+       {\drefresult}{\drefprefix #2}%
+  \endgroup%
 }
 
 \newcommand{\drefsave}[3][]{%
