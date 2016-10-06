@@ -21,3 +21,7 @@ dataref.zip: dataref.dtx dataref.ins dataref.pdf README.md
 	mv dataref/README.md dataref/README
 	zip -r dataref.zip dataref
 	rm -rf dataref
+
+test: testsuite.tex dataref.sty
+	pdflatex testsuite.tex
+	pdflatex testsuite.tex

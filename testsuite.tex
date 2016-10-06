@@ -1,0 +1,33 @@
+\documentclass{article}
+\usepackage{dataref}
+\usepackage{qstest}
+\usepackage{xspace}
+\usepackage{pdftexcmds}
+
+\begin{document}
+\def\ExpectTypeset#1#2{%
+  \pdfresettimer%
+  \sbox0{#1}%
+  \typeout{TIME: {\the\pdfelapsedtime} ticks for \detokenize{#1}}%
+  \sbox2{#2}%
+  \Expect*{\the\wd0}*{\the\wd2}%
+}
+
+\makeatletter
+
+\begin{qstest}{drefset: no space}{space}
+  \ExpectTypeset{\dref@set{}{1}{/set/1}}{}
+  \ExpectTypeset{\drefset{/set/1}{1}}{}
+  \ExpectTypeset{\drefset[unit=ms]{/set/2}{2}}{}
+\end{qstest}
+
+\begin{qstest}{drefsave: no space}{space}
+  \ExpectTypeset{\drefsave{/save/1}{1}}{}
+  \ExpectTypeset{\drefsave[unit=ms]{/save/2}{2}}{}
+\end{qstest}
+
+\end{document}
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
