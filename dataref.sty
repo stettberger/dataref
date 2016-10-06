@@ -98,7 +98,8 @@
 
 \def\drefkeys#1{\pgfkeys{/dref/.cd,#1}}
 \def\drefprefix{\pgfkeysvalueof{/dref/prefix}}
-
+\newif\ifdref@debug
+\def\dref@debug#1{\ifdref@debug \immediate\write17{Package dref: Debug: #1.}\fi}
 
 \drefkeys{
   .is family,
@@ -185,6 +186,7 @@
         \aftergroup}}
   },
   %
+  debug/.is if=dref@debug,
   ignoremissing/.is if=dref@ignoremissing,
 }
 
@@ -425,6 +427,7 @@
     @calc/.append code={%
       \dref@parser{#1}{\dref@calc@@ready}%
       \pgfmathparse{\dref@calc@@ready}%
+      \dref@debug{#1 -> \dref@calc@@ready = \pgfmathresult}%
       \edef\drefresult{\pgfmathresult}%
      }
   }
