@@ -21,11 +21,16 @@
 \CodelineIndex
 \RecordChanges
 
+\usepackage{verbatim}
 \usepackage{listings}
 \usepackage{pdfcomment}
 \usepackage{siunitx}
+\usepackage{xspace}
 \usepackage{pgffor}
 \usepackage{filecontents}
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows}
+
 \begin{filecontents}{datapoints.tex}
 \drefset{/control group/mice race}{Black Six}
 \drefset{/control group/mice count}{32}
@@ -80,6 +85,34 @@ include all dead mice before.}
 
  \DoNotIndex{\newcommand,\newenvironment}
 
+  \def\colorfirsttoken#1#2{\bgroup\expandafter\color{#1}\cmd{#2}\egroup}
+\renewcommand{\meta}[1]{\bgroup\color{green!40!black}$\langle$\textit{#1}$\rangle$\egroup}
+\newcommand{\Macro}[2][]{%
+   \noindent\hspace{-\marginparwidth}%
+   \mbox{\colorfirsttoken{blue!50!black}#2} \hfill\mbox{#1}\par}
+ \newcommand{\Option}[2][]{%
+   \noindent\hspace{-\marginparwidth}%
+   \mbox{\color{red!50!black}#2} \hfill\mbox{#1}\par}
+
+ \colorlet{examplefill}{yellow!80!black}
+ \definecolor{codebackground}{rgb}{0.9,0.9,1}
+ \newdimen\examplewidth
+ \newsavebox{\codebox}
+ \newenvironment{example}[1][\marginparwidth-12pt]
+ {\begin{lrbox}{\codebox}\begin{minipage}{#1}}
+ {\end{minipage}\end{lrbox}%
+   \examplewidth=\wd\codebox%
+   \addtolength{\examplewidth}{-1.2\marginparwidth}%
+   \global\examplewidth=\examplewidth%
+  \noindent\hspace{-0.8\marginparwidth}\colorbox{examplefill}{\usebox{\codebox}}\hspace{12pt}}
+
+ \newenvironment{codeexample}
+ {\begin{lrbox}{\codebox}\begin{minipage}{\textwidth+\examplewidth}}
+{\end{minipage}\end{lrbox}\noindent\colorbox{codebackground}{\usebox{\codebox}}\global\examplewidth=0pt%
+\par\vspace{1em}}%
+
+
+ \newcommand{\dataref}{\textsc{dataref}\xspace}
  \providecommand*{\url}{\texttt}
  \GetFileInfo{dataref.sty}
  \title{The \textsf{dataref} package}
@@ -110,79 +143,185 @@ include all dead mice before.}
 
  \section{Usage (or \dref*{/control group/mice count} mice)}
 
- The \textsf{dataref} package heavily uses \textsf{pgfkeys} and \textsf{pgfmath} to perform storage
- and operations upon data points. See \texttt{texdoc pgfmanual} for further information about those
- topics.
+ \begin{example}
+   From the \dref{/med A/mice count} mice in the experiment, \drefcalc[prefix=/med A]{d(/mice
+     count)-d(/recovered)} died.
+ \end{example}
+ \begin{codeexample}
+   \verb|\drefset{/med A/mice count}{32}|\\
+   \verb|\drefset{/med A/recovered}{20}|\\
+   \verb|From the \dref{/med A/mice count} mice in the experiment, |\\
+   \verb|\drefcalc[prefix=/med A]{d(/mice count)-d(/recovered)} died.|
+ \end{codeexample}
 
- \DescribeMacro{\drefset\{\meta{name}\}\{\meta{value}\}}
+ \subsection{Design Principles}
 
- The \cmd{\drefset} command is used to define the symbolic data points. The first argument is the
- symbolic name, the second argument is the value. The value can be a number, but it can also be
- arbitrary text. The key may contain virtually all characters, including spaces and slashes. It is
- good practice to use a hierarchy to structure you data point names.
+ Before we jump into the description of \dataref, let us look a little bit into the design principles of \dataref. By
+ understanding the principles, you will be more productive and embedding data into your document will become easier.
 
- \lstinputlisting[language=tex, firstline=5, lastline=15,basicstyle=\footnotesize,frame=single]{datapoints.tex}
+ First of all, \dataref is built on top of \textsf{pgfkeys} and \textsf{pgfmath} from the PGF/TiKZ macro packages. While
+ the former provides a usable user interface to provide options to \dataref, the later is used to perform computation on
+ your datapoints. If you are interested into these two excellent \TeX{} packages, please look at \texttt{texdoc
+   pgfmanual} for further information.
 
- The code snippet, which is best stored in an external file, and which might be auto-generated, is
- best read with \cmd{\input}. It defines 10 symbolic names, that are partitioned into two
- "directories" (\texttt{control group} and \texttt{medicament A}).
-
- \DescribeMacro{\dref*\{\meta{name}\}}
- \DescribeMacro{\dref[\meta{format}]\{\meta{name}\}}
+ There are two aspects of \dataref: setting datapoints and referencing datapoints. While setting datapoints is kind of
+ boring, we have a wide variety of options when it comes to referencing. The expansion of datapoints is done in
+ multiples phases (see Figure~\ref{fig:pipeline}).
 
 
- This macro is used to reference a single symbolic data point. The value stored in that datapoint
- is inserted into the text. \cmd{\dref} additionally marks the data point as used. It will then
- appear in the dref usage report. For undefined keys the default behaviour is to abort the
- compilation. But the package option \texttt{ignoremissing} just outputs a warning. All
- referenced/missing/found datapoints are noted in the aux file.
+ \begin{figure}[t]
+  \begin{tikzpicture}[node distance=0.5cm]
+    \tikzstyle{phase}=[draw,minimum width=1.5cm, fill=green!20!white];
+    \tikzstyle{desc}=[align=left, text width=3cm,anchor=#1,draw];
 
- \vspace{1em}\noindent\begin{tabular}{ll}\toprule
- Macro & Expansion \\
- \midrule
- \cmd{\dref*\{/control group/mice race\}} & \dref*{/control group/mice race} \\
- \cmd{\dref*\{/control group/mice count\}} & \dref*{/control group/mice count} \\
- \cmd{\dref[sci,precision=2,zerofill=true]\{/med A/recovered\}} & \dref[sci,precision=2,zerofill=true]{/med A/recovered} \\ \bottomrule
- \end{tabular}\vspace{1em}
 
- \cmd{\dref} additionally takes an optional argument. This argument is interpreted as
- \texttt{/pgf/number format/} argument. See the pgf/tikz manual for more information. Only in the
- unstarred version this macro parses the value as a number. Be aware that
- \cmd{\dref} is \textbf{not} expandable.
+   \node[phase](@init){@init};
+   \node[phase,right=of @init](@options){@options};
+   \node[phase,right=of @options](@get){@get};
+   \node[phase,right=of @get](@calc){@calc};
+   \node[phase,right=of @calc](@print){@print};
+   \node[phase,right=of @print](@set){@set};
 
- \DescribeMacro{\drefvalueof\{\meta{name}\}}
+   \draw[>=latex']
+     (@init) edge[->] (@options)
+     (@options) edge[->] (@get)
+     (@get) edge[->] (@calc)
+     (@calc) edge[->] (@print)
+     (@print) edge[->] (@set);
 
- Since \cmd{\dref} is not expandable, this macro can be used to get the bare value of a symbolic data point. But use it with caution, since it bypasses all internal book keeping.
- \begin{quote}
-  \verb|\drefvalueof{/med A/mice race}| $\Rightarrow$ '\drefvalueof{/med A/mice race}'
- \end{quote}
+     \draw[ultra thin,shorten <=2pt] (@init) -- ++(75:1cm)
+        node[desc=south] {Set up a clean working environment.};
 
- \DescribeMacro{\drefref\{\meta{name}\}}
+      \draw[ultra thin,shorten <=2pt] (@options) -- ++(-140:1.5cm)
+        node[desc=north] {Parse the user-defined options and fill up all subsequent phases.};
 
- This is complement of \cmd{\drefvalueof}, it does \emph{only} the book keeping for a key (marking it as referenced etc.) So it might be used to compensate the usage of its bad sibling.
- \begin{quote}
-  \verb|\drefref{/med A/mice race}|
- \end{quote}
+      \draw[ultra thin,shorten <=2pt] (@get) -- ++(95:1cm)
+        node[desc=south] {Load the main datapoint into \cmd{\drefresult} and reference it.};
 
- \DescribeMacro{[ignoremissing]}
- \DescribeMacro{[defaultvalue=1.0]}
- These two package options influence the behaviour regarding unknown
- keys. With \verb|ignoremissing| each missing symbolic datapoint is replaced by the defaultvalue. This behaviour might be useful when you use the .aux file, where the unknown keys are noted to extract data points from a third source (e.g. database, wikidata, etc). In the future a secondary tool will be provided to resolve those references.
+      \draw[ultra thin,shorten <=2pt] (@calc) -- ++(-140:1.5cm)
+       node[desc=north] {Perform calculations on the main datapoint, including unit scaling.};
 
- \DescribeMacro{\drefsethelp\{\meta{pattern}\}\{\meta{text}\}}
- \DescribeMacro{\drefhelp\{\meta{name}\}}
+      \draw[ultra thin,shorten <=2pt] (@print) -- ++(95:1.5cm)
+        node[desc=south] {Format and insert the result into the document body.};
+
+      \draw[ultra thin,shorten <=2pt] (@set) -- ++(-140:1.5cm)
+       node[desc=north] {Save the result as a datapoint or macro.};
+
+
+     \end{tikzpicture}
+     \caption{The \dataref Pipeline}\label{fig:pipeline}
+   \end{figure}
+
+   The \dataref macros are different regarding the phases they include or omit and in their default settings. In the
+   following, we will discuss all options and macros you can use to reference your datapoints. By default, the
+   \cmd{\drefresult} is always set to the result of the pipeline.
+
+ \subsection{Setting Datapoints}
+
+
+
+ \Macro[(@options, @set)]{\drefset\oarg{options}\{\meta{name}\}\{\meta{value}\}}
+
+
+\begin{codeexample}
+\begin{verbatim}
+\drefset{/med A/mice race}{Black Six}
+\drefset{/med A/mice count}{32}
+\drefset{/med A/dead after 24h}{6}
+\drefset{/med A/dead after 48h}{1}
+\end{verbatim}
+\end{codeexample}
+
+
+ The \cmd{\drefset} command is used to define the symbolic datapoints. The name of a datapoint may contain virtually all
+ characters, including spaces and slashes. It is good practice to use a hierarchy to structure your data point names.
+ The value might be any string, while the focus of \dataref is on numerical datapoints. The \cmd{\drefset} command works
+ outside the pipeline model (Figure \ref{fig:pipeline}) for performance reasons. It virtually consists only of the
+ @options and @set stage.
+
+ \Macro[(@options, @set)]{\drefsave[\meta{options}]\{\meta{name}\}\{\meta{value}\}}
+
+ Besides setting the datapoint, \cmd{\drefsave} writes it to the \textsc{aux} file and, therefore, makes it available in
+ the next \LaTeX{} run from the very beginning.
+
+\subsection{Referencing Datapoints}
+
+
+ \Macro[(@options=\{print=default\}, @get, @calc, @print, @set)]{\dref*[\meta{options}]\{\meta{name}\}}
+ \Macro[(@options=\{print=raw\},     @get, @calc, @print, @set)]{\dref[\meta{options}]\{\meta{name}\}}
+
+ This macro is used to reference a single symbolic data point. The value stored in that datapoint is inserted into the
+ text. \cmd{\dref} additionally marks the data point as used; it will appear in the datagraphy (see
+ Section~\ref{sec:datagraphy}). The starred variant does not attempt to parse the datapoint as a numerical value, but
+ outputs the saved string.
+
+\begin{example}
+\dref*{/control group/mice race}\\
+\dref*{/control group/mice count}\\
+\dref[sci,precision=2,zerofill=true]{/med A/recovered}
+\end{example}
+\begin{codeexample}
+\begin{verbatim}
+\dref*{/control group/mice race}\\
+\dref*{/control group/mice count}\\
+\dref[sci,precision=2,zerofill=true]{/med A/recovered}
+\end{verbatim}
+\end{codeexample}
+
+\Macro[(@get, @print)]{\drefvalueof\{\meta{name}\}}
+\Macro[(@get)]{\drefref\{\meta{name}\}}
+\vspace{1em}
+
+\begin{example}
+\drefvalueof{/med A/mice race}
+\end{example}\begin{codeexample}
+\begin{verbatim}
+\drefvalueof{/med A/mice race}
+\end{verbatim}
+\end{codeexample}
+
+  Since \cmd{\dref} is not expandable, it cannot be used in all circumstances. Therefore, \cmd{\drefvalueof} bypasses
+  all internal bookkeeping and provides access to the raw datapoint value. \cmd{\drefref} can be used to mark the
+  datapoint as used to let it appear in the datagraphy.
+
+\Option[(default \textbf{true}, initially \textbf{false})]{/dref/ignoremissing=\meta{true-or-false}}
+\Option[(no default, initially \textbf{1.0})]{/dref/defaultvalue=\meta{value}}
+
+By default, \dataref produces an error if the referenced datapoint is undefined. If ignoremissing is given, the
+defaultvalue is used. This key is useful in combination with \cmd{\drefsave}. Furthermore, it is possible to extract the
+missing keys from the \textsc{aux} file and to retrieve it from a secondary source (e.g. database, wikidata, etc).
+
+\begin{example}
+\dref*[ignoremissing,defaultvalue=undefined]{blah}
+\end{example}\begin{codeexample}
+\begin{verbatim}
+\dref*[ignoremissing,defaultvalue=undefined]{blah}
+\end{verbatim}
+\end{codeexample}
+
+\Macro{\drefsethelp\{\meta{pattern}\}\{\meta{text}\}}
+\Macro{\drefhelp\{\meta{name}\}}
 
  \textsf{dataref} comes with a simple method for defining documentation for data points. This help can for example be used to communicate what is the concrete semantics of the data point. This is of special interest when writter and data gatherer are not the same person. \cmd{\drefsethelp} takes two arguments: first a regular expression that matches the symbolic data point, second the help text.
 
- \lstinputlisting[language=tex, firstline=17, lastline=18,basicstyle=\footnotesize,frame=single]{datapoints.tex}
+\begin{codeexample}
+\begin{verbatim}
+\drefsethelp{.*/mice race}{The mice race used for experiments
+ heavily influences the outcome of the results}
+\end{verbatim}
+\end{codeexample}
 
- The helptext for a key is obtained by using the \cmd{\drefhelp} macro. It checks all defined helps (in linear order, first defined, first matched), and prints the first matching help text.
+The documentation for a datapoint is obtained by using the \cmd{\drefhelp} macro. It checks all defined documentation
+strings (in linear order, first defined, first matched), and prints the first matching help text. With \textbf{LuaTeX}:
+only Lua (string.find) regular expressions are supported as patterns.
 
- For \textbf{LuaTeX}: When using this \TeX{} engine, only Lua (string.find)
- regular expressions are supported as patterns.
- \begin{quote}
-  \verb|\drefhelp{/med A/mice race}|
-\end{quote}
+ \begin{example}
+    \drefhelp{/med A/mice race}
+  \end{example}\begin{codeexample}
+\begin{verbatim}
+\drefhelp{/med A/mice race}
+\end{verbatim}
+\end{codeexample}
 
 \subsection{Calculations and Math Tools}
 
@@ -509,7 +648,7 @@ It calculates the product of value and base.
    \dref*{/control group/mice race}, \dref{/control group/mice count}, \drefcalc{100/3}
  \end{quote}
 
- \subsection{Datagraphy}
+ \subsection{Datagraphy}\label{sec:datagraphy}
 
  \DescribeMacro{\drefusagereport}
  \DescribeMacro{[usagereport]}
@@ -524,3 +663,8 @@ It calculates the product of value and base.
  \drefusagereport
 
 \end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

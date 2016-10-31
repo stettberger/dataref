@@ -188,6 +188,7 @@
   %
   debug/.is if=dref@debug,
   ignoremissing/.is if=dref@ignoremissing,
+  defaultvalue/.store in=\dref@defaultvalue,
 }
 
 \csdef{dref@ifnum@0}{}
@@ -279,13 +280,13 @@
 
 % From here on, everything should be implemented using pgfkeys
 \protected\def\dref{\@ifstar\dref@starred\dref@unstarred}
-\newcommand{\dref@unstarred}[2][]{% Unstarred
+\newcommand{\dref@unstarred}[2][]{%
   \drefkeys{@[, @init, print=default, path={#2}, #1, @get, @calc, @print, @set,@],%
     @annotate={\textbackslash dref[#1]\{#2\}}%
   }%
 }
 \newcommand{\dref@starred}[2][]{%
-  \drefkeys{@[, @init, print=raw, path={#2}, #1, @get, @calc, @print, @set,@],%
+  \drefkeys{@[, @init, print=raw,     path={#2}, #1, @get, @calc, @print, @set,@],%
     @annotate={\textbackslash dref*[#1]\{#2\},}%
   }%
 }
