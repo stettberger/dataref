@@ -152,9 +152,9 @@
   @check key/.code={%
     \drefifdefined{#1}{}{%
       \ifdref@ignoremissing%
-        \dref@warning{undefined key `#1'}%
+        \dref@warning{undefined key `\drefprefix #1'}%
       \else%
-        \dref@error{undefined key `#1'}%
+        \dref@error{undefined key `\drefprefix #1'}%
       \fi%
     }%
   },
@@ -454,7 +454,7 @@
 }
 
 \newcommand{\drefformat}[2][]{%
-  \drefkeys{@[,@init, print=default, value={#2}, #1, @calc, @print, @set,@]}%
+  \drefkeys{@[,@init, print=default, value={#2}, #1, @calc, @print, @]}%
 }
 
 \long\def\drefprojection#1#2#3{%
@@ -762,7 +762,6 @@
 
 % Unit scaling
 
-\def\timescale{}
 \def\dref@unit@key#1#2{%
   dref@unit@\expandafter\detokenize\expandafter{#1}@\expandafter\detokenize\expandafter{#2}}
 
@@ -886,15 +885,19 @@
   unit/format default/.initial={plain},
   unit/format/.is choice,
   unit/format/no/.style={unit/format default=no, @print unit/.code={}},
+  unit/format/false/.style={unit/format default=no, @print unit/.code={}},
   unit/format/plain/.style={
     unit/format default=plain,
-    @print unit/.code={\dref@ifunit{\,\drefunit}{}}},
+    @print unit/.code={\dref@ifunit{\,\drefunit}{}}
+  },
   unit/format/typeout/.style={
     unit/format default=typeout,
-    @print unit/.code={\dref@ifunit{\expandafter\typeout\expandafter{\drefunit}}{}}},
+    @print unit/.code={\dref@ifunit{\expandafter\typeout\expandafter{\drefunit}}{}}
+ },
   unit/format/siunitx/.style={
     unit/format default=siunitx,
-    @print unit/.code={\dref@ifunit{\,\expandafter\si\expandafter{\drefunit}}{}}},
+    @print unit/.code={\dref@ifunit{\,\expandafter\si\expandafter{\drefunit}}{}}
+  },
   unit/format/default/.style={%
     unit/format default/.get=\dref@unit@format,
     unit/format/.expand once=\dref@unit@format
