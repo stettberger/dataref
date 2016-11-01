@@ -719,18 +719,21 @@
   },
   divide/.style={divide by},
   product/.style={scale by={#1}},
-  overhead of/.style={
+  increase factor from/.style={
     @get key or value to={#1}{\drefrel@tmp}{\drefrel@tmpunit},
     unit/@assert compatible=\drefrel@tmpunit,
     @calc pgf/.expanded={((\noexpand\drefresult)-(\drefrel@tmp))/(\drefrel@tmp)},
     @calc/.append code={\def\drefunit{}},
   },
-  increase by/.style={overhead of={#1}},
-  delta/.style={
+  increase percent from/.style={increase factor from={#1}, percent},
+  decrease factor from/.style={increase factor from={#1}, negate},
+  decrease percent from/.style={increase factor from={#1}, negate, percent},
+  increase from/.style={
     @get key or value to={#1}{\drefrel@tmp}{\drefrel@tmpunit},%
     unit/@assert compatible=\drefrel@tmpunit,
     @calc pgf/.expanded={((\noexpand\drefresult)-(\drefrel@tmp))},
   },
+  decrease from/.style={increase from={#1}, negate},
   abs/.style={
     @calc pgf={abs(\drefresult)}
   },

@@ -464,8 +464,10 @@ of plain value to nano joule, and scale everything to milli joule.
 
 \Option[(default \textbf 50)]{/dref/unit/scale to auto=\meta{optimum number}}
 
-With the \texttt{scale to auto} you can choose the scaled-to unit automatically. The algorithm tries every unit on the
-scala and chooses the unit, where the numerical value after scaling is nearest to the \meta{optimum number}.
+With \texttt{scale to auto}, the appropriate unit is chosen automatically. The algorithm tries every unit on the scala
+and chooses the unit, where the numerical value after scaling is nearest to the \meta{optimum number}. So with a optimum
+number of 50, 5000 seconds are scaled to \drefformat[unit=s, unit/scale to auto]{5000} instead of \drefformat[unit=s,
+unit/scale to=h]{5000}.
 
 
 \begin{example}
@@ -500,109 +502,85 @@ scala and chooses the unit, where the numerical value after scaling is nearest t
 
 \subsection{Relating Datapoints}
 
- \DescribeMacro{\drefrel*[\meta{opts}]\{\meta{key}\}}
- \DescribeMacro{\drefrel[\meta{opts}]\{\meta{key}\}}
+\Macro[(@options, @calc, @set)]{\drefrel*[\meta{options}]\{\meta{key or value}\}}
+\Macro[(@options, @calc, @print, @set)]{\drefrel[\meta{options}]\{\meta{key or value}\}}
 
- The \cmd{\drefrel} macro is used to calculate relations between
- different datapoints. A prominent example of such a relation is the
- percent relation. \cmd{\drefrel} allows you to write down
- intentionally what relation you want to express without thinking
- about a concrete formula. The starred version of this macro does not
- print anything, but sets only \cmd{\drefresult}.
+Often, datapoints are set in relation to each other. This can either be done with \cmd{\drefcalc} or, more explictily,
+with \cmd{\drefrel}. The different options that come along \cmd{\drefrel}, add steps to the @calc phase and can,
+therefore, be combinated with any other dref macro that includes the @calc phase.
 
- \begin{quote}
- \noindent\verb|\drefrel[factor of=/med A/mice count]{/med A/recovered}| \\
- \mbox{}\hspace{1cm} $\Rightarrow$ \drefrel[factor of=/med A/mice count]{/med A/recovered} \\
- \end{quote}
+All operations operate on the current result, which is initially the given key or value from the mandatory argument.
 
- The type of relation is expressed with with various keys in a given
- order. The relation-key sequence performs calculations on the given
- data point. Like \cmd{\drefcalc}, \cmd{\drefrel} sets the
- \cmd{\drefresult} macro accordingly.
+\begin{example}
+  \drefrel[percent of=123]{40}
+\end{example}\begin{codeexample}
+\begin{verbatim}
+  \drefrel[percent of=123]{40}
+\end{verbatim}
+\end{codeexample}
 
- \DescribeMacro{factor of=\meta{key or value}}
- \DescribeMacro{percent of=\meta{key or value}}
+The different relation operations try to have a speaking name, such that the \TeX{} code is easily understandable by the
+writer. This explicit notation aims to prevent common mistakes, like confusing denominator and numerator.
 
- Both relations are very similar, since they divide the current value
- by the given value. The \cmd{percent of} variant, scales the result
- by 100. The argument can be either a dataref key or a plain number.
+The starred version of \cmd\drefrel does not print any number, but only saves the result in \cmd\drefresult. Instead of
+only taking datapoint keys, \cmd\drefrel, as well as the relating operations, take either a key or a bare number as you can
+see from the example.
 
- \[\cmd{\drefresult} = \frac{\texttt{value}}{\texttt{arg}}\]
+\Option[(no default)]{/dref/scale by=\meta{key or value}}
 
- \noindent\verb|\drefrel[factor of=50]{/med A/mice count}| $\Rightarrow$ \drefrel[factor of=50]{/med A/mice count}\\
- \verb|\drefrel[percent of=/med A/mice count]{/med A/recovered}| $\Rightarrow$ \drefrel[percent of=/med A/mice count]{/med A/recovered}
+Scales the current value by the given factor, which must be unit less. The resulting unit is untouched.
 
+\Option[(no default)]{/dref/percent}
 
- \DescribeMacro{increase by=\meta{key or val}}
- \DescribeMacro{overhead of=\meta{key or val}}
+Scales the current value by 100. The unit is not changed.
 
- It calculates the overhead factor towards the base value.
- \texttt{increase by} and \texttt{overhead of} are synonyms.
+\Option[(no default)]{/dref/negate}
 
- \[\cmd{\drefresult} = \frac{\texttt{value} -
- \texttt{arg}}{\texttt{arg}}\]
+Scales the current value by -1. The resulting unit is untouched.
 
- \verb|\drefrel[overhead of=50,fixed]{45}| $\Rightarrow$
- \drefrel[overhead of=50,fixed]{45}
+\Option[(no default)]{/dref/divide by=\meta{key or value}}
 
- \DescribeMacro{delta=\meta{key or val}}
-
- Calculates the difference between value
- and base.
-
- \[\cmd{\drefresult} = \texttt{value} - \texttt{arg}\]
-
- \verb|\drefrel[delta=50]{45}| $\Rightarrow$
- \drefrel[delta=50]{45}
-
- \DescribeMacro{scale=\meta{key or val}}
- \DescribeMacro{product=\meta{key or val}}
-
-It calculates the product of value and base.
-
- \[\cmd{\drefresult} = \texttt{value} \cdot \texttt{arg}\]
-
- \verb|\drefrel[scale by=2]{45}| $\Rightarrow$
- \drefrel[scale by=2]{45}
-
- \DescribeMacro{percent}
-
- Is a post-processing type. It calculates the percent value from a fraction.
-
- \[\cmd{\drefresult} = \cmd{\drefresult} \cdot 100.0 \]
-
- \noindent\verb|\drefrel[increase by=/control group/dead after 24h,percent]{/med A/dead after 24h}| \\
- \mbox{}\hspace{1cm}$\Rightarrow$ \drefrel[increase by=/control
- group/dead after 24h,percent]{/med A/dead after 24h}
-
-\DescribeMacro{abs}
-
- Take the absolute value.
-
- \[\cmd{\drefresult} = \mid \cmd{\drefresult} \mid \]
- \verb|\drefrel[overhead of=50, abs]{45}| $\Rightarrow$
- \drefrel[overhead of=50, abs]{45}
-
-  \DescribeMacro{negate}
-
- Is a post-processing type. It negates the value.
-
- \[\cmd{\drefresult} = \cmd{\drefresult} \cdot -1.0 \]
-
- \noindent\verb|\drefrel[factor of=/med A/mice count,negate]{/med A/recovered}| \\
- \mbox{}\hspace{1cm}$\Rightarrow$ \drefrel[factor of=/med A/mice count,negate]{/med A/recovered}
-
- \DescribeMacro{divide}
- \DescribeMacro{divide by}
+Divides the current value by the given factor, which must be unit less. The resulting unit is untouched.
 
 
- Divides the result by a factor.
+\Option[(no default)]{/dref/abs}
 
- \[\cmd{\drefresult} = \cmd{\drefresult} \cdot \{divide\} \]
+Calculate the absolute value.
 
- \noindent\verb|\drefrel[divide by=1e6]{1453342654}|
- $\Rightarrow$
- \drefrel[divide by=1e6]{1453342654}
+\Option[(no default)]{/dref/factor of=\meta{key or value}}
+\Option[(no default)]{/dref/percent of=\meta{key or value}}
+
+The \textbf{factor of} operation gives the portion the current value in relation to the given base value. In easy words:
+a division. This macro ensures, that base and current vale have the same unit or are unit less. The result of this
+operation is unit less. The \textbf{percent of} operation, furthermore, scales the result with 100 to get a percentage.
+
+\Option[(no default)]{/dref/increase from=\meta{key or value}}
+\Option[(no default)]{/dref/decrease from=\meta{key or value}}
+\Option[(no default)]{/dref/increase factor from=\meta{key or value}}
+\Option[(no default)]{/dref/decrease factor from=\meta{key or value}}
+\Option[(no default)]{/dref/increase percent from=\meta{key or value}}
+\Option[(no default)]{/dref/decrease percent from=\meta{key or value}}
+
+In a situation, where a datapoint is the result of a changed experiment setup, the value normally shows an increased or decrease
+numerical value. This family of operations calculates this delta, assuming it is an increase or decrease. The factor
+operations scale the result to the base value, and the percent operations give this scaled value as a percentage.
+
+\begin{example}
+  \drefrel[increase from=500]{525}\\
+  \drefrel[increase factor from=500,fixed]{525}\\
+  \drefrel[increase percent from=500]{525}\,\%
+\end{example}
+\begin{codeexample}
+\begin{verbatim}
+  \drefrel[increase from=500]{525}\\
+  \drefrel[increase factor from=500,fixed]{525}\\
+  \drefrel[increase percent from=500]{525}\,\%
+\end{verbatim}
+\end{codeexample}
+
+
+
+
 
  \DescribeMacro{\drefprojection\{\meta{from}\}\{\meta{to}\}\{\meta{projection}\}}
 
