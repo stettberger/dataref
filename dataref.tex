@@ -578,77 +578,47 @@ operations scale the result to the base value, and the percent operations give t
 \end{verbatim}
 \end{codeexample}
 
+\subsection{Helper Utilities}
 
-
-
-
- \DescribeMacro{\drefprojection\{\meta{from}\}\{\meta{to}\}\{\meta{projection}\}}
-
- Sometimes one or multiple sets of data have to be projected/mixed into a
- new set of data that is fully dependent on those values. This is
- achieved with \cmd{\drefprojection}. It projects one data set (subdirectoy) into
- another one. Tithin the projection three different operations are
- possible: \cmd{\id}, \cmd{\rename} and \cmd{\calc}.
-
- \drefprojection{/control group}{/projection}{
-       \id{mice race} % identity function
-       \rename{mice count}{count} % renaming of points
-       \calc{data("/dead after 48h")-data("/dead after 24h")}{died}
- }
-
- \begin{quote}
-   \begin{verbatim}\drefprojection{/control group}{/projection}{
-       \id{mice race} % identity function
-       \rename{mice count}{count} % renaming of points
-       \calc{data("/dead after 24h")-data("/dead after 48h")}{died}
-     }\end{verbatim}
-
-   \verb|\dref*{/projection/died}| $\Rightarrow$ \dref{/projection/died}\\
-   \verb|\dref*{/projection/mice race}| $\Rightarrow$ \dref*{/projection/mice race}\\
-   \verb|\dref{/projection/count}| $\Rightarrow$ \dref{/projection/count}
- \end{quote}
-
- \subsection{Various handy Tools}
-
- \DescribeMacro{\drefrow\{\meta{list}\}\{\meta{macro}\}}
- \DescribeMacro{\drefrow*}
-
+\Macro{\drefrow[\meta{options}]\{\meta{comma-separated list}\}\{\meta{key template}\}}
+\Macro{\drefrow*\{\meta{comma-separated list}\}\{\meta{template}\}}
 
  Often different columns in a table have to be obtained from your data
  points. Often those rows and columns are similar. Generating parts of
- tables within \LaTeX is very tricky, so \textsf{dataref} provides you
+ tables within \LaTeX is very tricky, so \dataref provides you
  with \cmd{\drefrow}. This macro iterates over a comma-separated list
  of values and fills out a macro which is interpreted as a symbolic
  data point. The entries are seperated with \& and printed. In the
  starred variant the resulting text is not interpreted as symbolic
- name, but as a macro. The symbolic name is expanded with \cmd{\drefvalueof}.
+ name, but as a macro.
 
- The second argument is the macro, and can have two macro
- replacements. The first replacement \verb|#1| is the value of the list
- item, the second \verb|#2| is the index in the list.
+ Both, unstarred and starred variant take a template (a macro body) that is expanded once for every item in the given
+ list. The first replacement \verb|#1| is list item and the second \verb|#2| is the current index starting from 0. The
+ unstarred variant interprets the expanded result as a datapoint key and uses \cmd\dref to expand it; the optional
+ parameter is passed through to every invocation of \cmd\dref.
+ The starred variant does not wrap the result into \cmd\dref, and, therefore, is more flexible.
 
- \begin{verbatim}\begin{tabular}{lccc}
-   Group & $<$ 24h & $<$48h & recovered\\ \hline
-   Control Group & \drefrow{dead after 24h,dead after 48h,recovered}%
-                           {/control group/#1}\\
-   Medicament A & \drefrow{dead after 24h,dead after 48h,recovered}%
-                           {/med A/#1}\\
-   Starred Variant & \drefrow*{B,C,D}{\#1=#1,\#2=#2}\\
- \end{tabular}
- \end{verbatim}
-
-
- \vspace{1em}\begin{tabular}{lccc}
-   Group & $<$ 24h & $<$48h & recovered\\ \hline
-   Control Group & \drefrow{dead after 24h,dead after 48h,recovered}%
-                           {/control group/#1}\\
-   Medicament A & \drefrow{dead after 24h,dead after 48h,recovered}%
+ \begin{example}
+   \begin{tabular}{|c|c|c|}\hline
+   \drefrow{dead after 24h,dead after 48h,recovered}%
+                           {/control group/#1}\\\hline
+   \drefrow{dead after 24h,dead after 48h,recovered}%
                            {/med A/#1}\\\hline
-   Starred Variant & \drefrow*{B,C,D}{\#1=#1,\#2=#2}\\
- \end{tabular}\vspace{1em}
+   \end{tabular}
+ \end{example}
+ \begin{codeexample}
+\begin{verbatim}
+\begin{tabular}{|c|c|c|}\hline
+  \drefrow{dead after 24h,dead after 48h,recovered}
+           {/control group/#1}\\\hline
+  \drefrow{dead after 24h,dead after 48h,recovered}%
+          {/med A/#1}\\\hline
+\end{tabular}
+\end{verbatim}
+ \end{codeexample}
 
- \DescribeMacro{\drefassert\{\meta{expr}\}}
- \DescribeMacro{[noassert]}
+
+ \Macro[(@calc)]{\drefassert\{\meta{expr}\}}
 
  Sometimes the underlying data changes while you are writing. But what
  if your prose text relies on certain characteristics of the data. \cmd{\drefassert} uses a pgfmath
@@ -656,58 +626,59 @@ operations scale the result to the base value, and the percent operations give t
  assertion holds (\verb|true|) nothing happens, only a terminal message
  is printed. When it does not hold (\verb|false|) the compilation is aborted.
 
- \begin{verbatim}\drefassert{data("/control group/mice count") > 30}
- Of the more than thirty infected mice...
- \end{verbatim}
- \drefassert{data("/control group/mice count") > 30}
- \begingroup \drefassert{data("/control group/mice
- count") > 30} \endgroup
+\begin{example}
+\drefassert{data("/control group/mice count") > 30}
+Of the more than thirty infected mice...
+\end{example}\begin{codeexample}
+\begin{verbatim}
+\drefassert{data("/control group/mice count") > 30}
+Of the more than thirty infected mice...
+\end{verbatim}
+\end{codeexample}
 
- The \textbf{noassert} package options disables the latex abortion. In
- that case only a warning message is printed on the terminal.
+ \Option[(default \textbf{true})]{/dref/noassert=\meta{true or false}}
 
- \DescribeMacro{[annotate=none]}
- \DescribeMacro{[annotate=footnote]}
- \DescribeMacro{[annotate=pdfcomment]}
- \DescribeMacro{[annotate=typeout]}
+ The \textbf{noassert} deescalates all assertion errors to mere warnings. This option can also be given at the
+ \cmd\usepackage invication.
 
+\Option[(no default, initially \textbf{none}, choice)]{/dref/annotate=\meta{annotation type}}
+\Option[(choice item)]{/dref/annotate=none}
+\Option[(choice item)]{/dref/annotate=footnote}
+\Option[(choice item)]{/dref/annotate=pdfcomment}
+\Option[(choice item)]{/dref/annotate=typeout}
 
- While writing a document it is desirable to know, what key is used,
- while writing the text and generating the document. Therefore
- \textsf{dataref} provides the possibility to annotate values. The
- default package option \textbf{none} disables this kind of
- annotation. The \textbf{pdfcomment} option uses pdf
- annotations. Be aware that those annotations work properlyy only on a few
- selected PDF readers\footnote{In doubt use Acrobat}.
+While writing a document it is desirable to know, what key is used, while writing the text and generating the document.
+Therefore \dataref provides the possibility to annotate values. The default option \textbf{none} disables this kind of
+annotation. The \textbf{pdfcomment} option uses pdf annotations. Be aware that those annotations work properlyy only on
+a few selected PDF readers\footnote{In doubt use Acrobat}.
 
- \begin{quote}
-   \verb|\drefkeys{annotate=none}|\drefkeys{annotate=none}\\
-   \dref*{/control group/mice race}, \dref{/control group/mice count}, \drefcalc{100/3}
- \end{quote}
+\begin{example}[6cm]
+  \drefkeys{annotate=footnote}
+  \dref*{/control group/mice race}
+  \dref{/control group/mice count}
+  \drefcalc[annotate=pdfcomment]{100/3}
+\end{example}\begin{codeexample}
+\begin{verbatim}
+\drefkeys{annotate=footnote}
+\dref*{/control group/mice race}
+\dref{/control group/mice count}
+\drefcalc[annotate=pdfcomment]{100/3}
+\end{verbatim}
+\end{codeexample}
 
- \begin{quote}
-   \verb|\drefkeys{annotate=footnote}|\drefkeys{annotate=footnote}\\
-   \dref*{/control group/mice race}, \dref{/control group/mice count}, \drefcalc{100/3}
- \end{quote}
-
- \begin{quote}
-   \verb|\drefkeys{annotate=pdfcomment}|\drefkeys{annotate=pdfcomment}\\
-   \dref*{/control group/mice race}, \dref{/control group/mice count}, \drefcalc{100/3}
- \end{quote}
 
  \subsection{Datagraphy}\label{sec:datagraphy}
 
- \DescribeMacro{\drefusagereport}
- \DescribeMacro{[usagereport]}
- \DescribeMacro{[refall]}
+ \Macro{\drefusagereport}
+ \Option{[usagereport]}
+ \Option{[refall]}
 
- With the \textbf{usagereport} package option enabled,
- \cmd{\drefusagereport} generates a usagereport of all referenced
- keys. The usage report groups the keys by the help texts. If the
- refall package option is given, all keys are marked as referenced.
+ With the \textbf{usagereport} package option enabled, \cmd{\drefusagereport} generates a usagereport of all referenced
+ keys. The usage report groups the keys by the help texts. If the refall package option is given, all keys are marked as
+ referenced.
 
- \section*{Datagraphy}
- \drefusagereport
+\section*{Datagraphy}
+\drefusagereport
 
 \end{document}
 

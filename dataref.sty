@@ -281,13 +281,13 @@
 % From here on, everything should be implemented using pgfkeys
 \protected\def\dref{\@ifstar\dref@starred\dref@unstarred}
 \newcommand{\dref@unstarred}[2][]{%
-  \drefkeys{@[, @init, print=default, path={#2}, #1, @get, @calc, @print, @set,@],%
-    @annotate={\textbackslash dref[#1]\{#2\}}%
+  \drefkeys{@[, @init, print=default, path={#2}, #1, @get, @calc, @print, @set,%
+    @annotate={\textbackslash dref[#1]\{#2\}}, @]%
   }%
 }
 \newcommand{\dref@starred}[2][]{%
-  \drefkeys{@[, @init, print=raw,     path={#2}, #1, @get, @calc, @print, @set,@],%
-    @annotate={\textbackslash dref*[#1]\{#2\},}%
+  \drefkeys{@[, @init, print=raw,     path={#2}, #1, @get, @calc, @print, @set,%
+    @annotate={\textbackslash dref*[#1]\{#2\}}, @]%
   }%
 }
 \def\drefgetvalue#1#2{%
@@ -444,12 +444,12 @@
 
 \protected\def\drefcalc{\@ifstar\drefcalc@starred\drefcalc@unstarred}
 \newcommand{\drefcalc@unstarred}[2][]{% Unstarred
-  \drefkeys{@[,@init, print=default, @calc pgf={#2}, #1, @calc, @print, @set,@],%
-    @annotate={\textbackslash drefcalc[#1]\{#2\}}}%
+  \drefkeys{@[,@init, print=default, @calc pgf={#2}, #1, @calc, @print, @set,%
+    @annotate={\textbackslash drefcalc[#1]\{#2\}},@]}%
 }
 \newcommand{\drefcalc@starred}[2][]{ % Starred
-  \drefkeys{@[,@init, @calc pgf={#2}, #1, @calc, @set,@],%
-    @annotate={\textbackslash \drefcalc*[#1]\{#2\}}%
+  \drefkeys{@[,@init, @calc pgf={#2}, #1, @calc, @set,%
+    @annotate={\textbackslash \drefcalc*[#1]\{#2\}},@]%
   }%
 }
 
@@ -513,7 +513,7 @@
 }
 
 \long\def\drefrow{\@ifstar{\drefrow@starred}{\drefrow@unstarred}}
-\def\drefrow@unstarred#1#2{\dref@makerow{#1}{\dref{#2}}\ignorespaces}
+\newcommand{\drefrow@unstarred}[3][]{\dref@makerow{#2}{\dref[#1]{#3}}\ignorespaces}
 \def\drefrow@starred#1#2{\dref@makerow{#1}{#2}\ignorespaces}
 
 \expandafter\ifstrequal\expandafter{\dref@annotate}{pdfcomment}{
@@ -677,6 +677,9 @@
   \endgroup%
   }% csempty @keys
   \fi%
+}
+\drefkeys{
+  noassert/.is if=dref@noassert
 }
 \newcommand{\drefassert}[1]{%
   \begingroup%
