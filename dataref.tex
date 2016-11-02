@@ -60,6 +60,9 @@ include all dead mice before.}
 \drefsave{/override test}{4}
 \drefkeys{prefix=}
 
+\parskip=1ex
+\parindent=0pt
+
 \CheckSum{0}
 
 
@@ -85,14 +88,27 @@ include all dead mice before.}
 
  \DoNotIndex{\newcommand,\newenvironment}
 
-  \def\colorfirsttoken#1#2{\bgroup\expandafter\color{#1}\cmd{#2}\egroup}
+ \makeatletter
+ \def\colorfirsttoken#1#2{\bgroup\expandafter\color{#1}\cmd{#2}\egroup}
+ \def\Macro@Name#1#2\@nnil{\string#1}
+
 \renewcommand{\meta}[1]{\bgroup\color{green!40!black}$\langle$\textit{#1}$\rangle$\egroup}
 \newcommand{\Macro}[2][]{%
-   \noindent\hspace{-\marginparwidth}%
-   \mbox{\colorfirsttoken{blue!50!black}#2} \hfill\mbox{#1}\par}
+  \noindent\hspace{-\marginparwidth}%
+  \hypertarget{\Macro@Name#2\@nnil}{%
+   \mbox{\colorfirsttoken{blue!50!black}#2}} \hfill\mbox{#1}\par}
  \newcommand{\Option}[2][]{%
    \noindent\hspace{-\marginparwidth}%
    \mbox{\color{red!50!black}#2} \hfill\mbox{#1}\par}
+
+ \newcommand{\option}[1]{%
+   \bgroup\color{red!50!black}#1\egroup\xspace
+ }
+
+ \renewcommand{\macro}[1]{%
+   \hyperlink{\Macro@Name#1\@nnil}{\bgroup\color{blue!50!black}\cmd#1\egroup}\xspace
+ }
+ \makeatother
 
  \colorlet{examplefill}{yellow!80!black}
  \definecolor{codebackground}{rgb}{0.9,0.9,1}
@@ -136,9 +152,9 @@ include all dead mice before.}
 
  The \textsf{dataref} is here to help you with managing your data points. It provides you with
  macro style keys that represent symbolic names for your data points. You can reference those
- symbolic names with \cmd{\dref}, use them in calculations to have always up-to-date percentage
+ symbolic names with \macro{\dref}, use them in calculations to have always up-to-date percentage
  values, define projections between sets of data points and document them. \textsf{dataref} also
- introduces the notion of assertions (\cmd{\drefassert}) for your results to ensure that your prosa
+ introduces the notion of assertions (\macro{\drefassert}) for your results to ensure that your prosa
  text references fit the underlying data.
 
  \section{Usage (or \dref*{/control group/mice count} mice)}
@@ -196,7 +212,7 @@ include all dead mice before.}
         node[desc=north] {Parse the user-defined options and fill up all subsequent phases.};
 
       \draw[ultra thin,shorten <=2pt] (@get) -- ++(95:1cm)
-        node[desc=south] {Load the main datapoint into \cmd{\drefresult} and reference it.};
+        node[desc=south] {Load the main datapoint into \macro{\drefresult} and reference it.};
 
       \draw[ultra thin,shorten <=2pt] (@calc) -- ++(-140:1.5cm)
        node[desc=north] {Perform calculations on the main datapoint, including unit scaling.};
@@ -207,20 +223,19 @@ include all dead mice before.}
       \draw[ultra thin,shorten <=2pt] (@set) -- ++(-140:1.5cm)
        node[desc=north] {Save the result as a datapoint or macro.};
 
-
      \end{tikzpicture}
      \caption{The \dataref Pipeline}\label{fig:pipeline}
    \end{figure}
 
    The \dataref macros are different regarding the phases they include or omit and in their default settings. In the
    following, we will discuss all options and macros you can use to reference your datapoints. By default, the
-   \cmd{\drefresult} is always set to the result of the pipeline.
+   \macro{\drefresult} is always set to the result of the pipeline.
 
  \subsection{Setting Datapoints}
 
 
 
- \Macro[(@options, @set)]{\drefset\oarg{options}\{\meta{name}\}\{\meta{value}\}}
+ \Macro[(@set)]{\drefset\oarg{options}\{\meta{name}\}\{\meta{value}\}}
 
 
 \begin{codeexample}
@@ -233,16 +248,58 @@ include all dead mice before.}
 \end{codeexample}
 
 
- The \cmd{\drefset} command is used to define the symbolic datapoints. The name of a datapoint may contain virtually all
+ The \macro{\drefset} command is used to define the symbolic datapoints. The name of a datapoint may contain virtually all
  characters, including spaces and slashes. It is good practice to use a hierarchy to structure your data point names.
- The value might be any string, while the focus of \dataref is on numerical datapoints. The \cmd{\drefset} command works
+ The value might be any string, while the focus of \dataref is on numerical datapoints. The \macro{\drefset} command works
  outside the pipeline model (Figure \ref{fig:pipeline}) for performance reasons. It virtually consists only of the
  @options and @set stage.
 
- \Macro[(@options, @set)]{\drefsave[\meta{options}]\{\meta{name}\}\{\meta{value}\}}
+ \Macro[(@set)]{\drefsave[\meta{options}]\{\meta{name}\}\{\meta{value}\}}
 
- Besides setting the datapoint, \cmd{\drefsave} writes it to the \textsc{aux} file and, therefore, makes it available in
- the next \LaTeX{} run from the very beginning.
+ Besides setting the datapoint, \macro{\drefsave} writes it to the \textsc{aux} file and, therefore, makes it available in
+ the next \LaTeX{} run from the very beginning. The \option{ignoremissing} option is useful to reference the saved keys
+ at an earlier place in the document.
+
+\Option[(no default)]{/dref/set=\meta{key}}
+
+Inserts a \macro{\drefset} to the @set that captures the current result and saves it to the given datapoint.
+
+\Option[(no default)]{/dref/save=\meta{key}}
+
+Inserts a \macro{\drefsave} to the @set that captures the current result and saves it to the given datapoint. Since
+\macro{\drefsave} is used the result is available from the beginning of the document.
+
+\Option[(no default)]{/dref/to macro=\meta{macro}}
+
+The current result is saved to the given macro.
+
+\begin{example}[2cm]
+  \dref[set=/foo]{/med A/mice count} \dref{/foo}\\
+  \dref[ignoremissing]{/bar} \dref[save=/bar]{/med A/mice count}\\
+  \drefcalc*[to macro=\myresult]{3+2} \myresult
+\end{example}
+\begin{codeexample}
+\begin{verbatim}
+\dref[set=/foo]{/med A/mice count} \dref{/foo}\\
+\dref[ignoremissing]{/bar} \dref[save=/bar]{/med A/mice count}\\
+\drefcalc*[to macro=\myresult]{3+2} \myresult
+\end{verbatim}
+\end{codeexample}
+
+
+\Option[(no default, initially "")]{/dref/prefix=\meta{key prefix}}
+
+On every key retrieval or setting of a datapoint this prefix is added.
+It is a value-typed PGF key, so operations like
+\texttt{prefix/.append} are possible.
+
+\Macro{\drefinput[\meta{prefix}]\{\meta{filename}\}}
+
+Uses \cmd{\input} to read the file. During the processing of this file
+\option{prefix} is set to the given value. This is useful to include
+several files that resulted from different experiments but include
+equal datapoint keys.
+
 
 \subsection{Referencing Datapoints}
 
@@ -251,7 +308,7 @@ include all dead mice before.}
  \Macro[(@options=\{print=raw\},     @get, @calc, @print, @set)]{\dref[\meta{options}]\{\meta{name}\}}
 
  This macro is used to reference a single symbolic data point. The value stored in that datapoint is inserted into the
- text. \cmd{\dref} additionally marks the data point as used; it will appear in the datagraphy (see
+ text. \macro{\dref} additionally marks the data point as used; it will appear in the datagraphy (see
  Section~\ref{sec:datagraphy}). The starred variant does not attempt to parse the datapoint as a numerical value, but
  outputs the saved string.
 
@@ -280,15 +337,15 @@ include all dead mice before.}
 \end{verbatim}
 \end{codeexample}
 
-  Since \cmd{\dref} is not expandable, it cannot be used in all circumstances. Therefore, \cmd{\drefvalueof} bypasses
-  all internal bookkeeping and provides access to the raw datapoint value. \cmd{\drefref} can be used to mark the
+  Since \macro{\dref} is not expandable, it cannot be used in all circumstances. Therefore, \macro{\drefvalueof} bypasses
+  all internal bookkeeping and provides access to the raw datapoint value. \macro{\drefref} can be used to mark the
   datapoint as used to let it appear in the datagraphy.
 
 \Option[(default \textbf{true}, initially \textbf{false})]{/dref/ignoremissing=\meta{true-or-false}}
 \Option[(no default, initially \textbf{1.0})]{/dref/defaultvalue=\meta{value}}
 
 By default, \dataref produces an error if the referenced datapoint is undefined. If ignoremissing is given, the
-defaultvalue is used. This key is useful in combination with \cmd{\drefsave}. Furthermore, it is possible to extract the
+defaultvalue is used. This key is useful in combination with \macro{\drefsave}. Furthermore, it is possible to extract the
 missing keys from the \textsc{aux} file and to retrieve it from a secondary source (e.g. database, wikidata, etc).
 
 \begin{example}
@@ -302,7 +359,7 @@ missing keys from the \textsc{aux} file and to retrieve it from a secondary sour
 \Macro{\drefsethelp\{\meta{pattern}\}\{\meta{text}\}}
 \Macro{\drefhelp\{\meta{name}\}}
 
- \textsf{dataref} comes with a simple method for defining documentation for data points. This help can for example be used to communicate what is the concrete semantics of the data point. This is of special interest when writter and data gatherer are not the same person. \cmd{\drefsethelp} takes two arguments: first a regular expression that matches the symbolic data point, second the help text.
+ \textsf{dataref} comes with a simple method for defining documentation for data points. This help can for example be used to communicate what is the concrete semantics of the data point. This is of special interest when writter and data gatherer are not the same person. \macro{\drefsethelp} takes two arguments: first a regular expression that matches the symbolic data point, second the help text.
 
 \begin{codeexample}
 \begin{verbatim}
@@ -311,7 +368,7 @@ missing keys from the \textsc{aux} file and to retrieve it from a secondary sour
 \end{verbatim}
 \end{codeexample}
 
-The documentation for a datapoint is obtained by using the \cmd{\drefhelp} macro. It checks all defined documentation
+The documentation for a datapoint is obtained by using the \macro{\drefhelp} macro. It checks all defined documentation
 strings (in linear order, first defined, first matched), and prints the first matching help text. With \textbf{LuaTeX}:
 only Lua (string.find) regular expressions are supported as patterns.
 
@@ -321,20 +378,26 @@ only Lua (string.find) regular expressions are supported as patterns.
 \begin{verbatim}
 \drefhelp{/med A/mice race}
 \end{verbatim}
-\end{codeexample}
+  \end{codeexample}
+
+
+\Macro{\drefresult}
+
+Is set in the @set phase to the result of the currently executed pipeline.
+
 
 \subsection{Calculations and Math Tools}
 
-\Macro[(@options, @calc, @print, @set)]{\drefcalc[\meta{options}]\{\meta{expression}\}}
-\Macro[(@options, @calc, @set)]{\drefcalc*[\meta{options}]\{\meta{expression}\}}
-\Macro[(@options, @print)]{\drefformat*[\meta{options}]\{\meta{number}\}}
+\Macro[(@calc, @print, @set)]{\drefcalc[\meta{options}]\{\meta{expression}\}}
+\Macro[(@calc, @set)]{\drefcalc*[\meta{options}]\{\meta{expression}\}}
+\Macro[(@print)]{\drefformat*[\meta{options}]\{\meta{number}\}}
 
-The \cmd{\drefcalc} is the core function of calculating with data points. It is based on the pgfmath engine, but allows
+The \macro{\drefcalc} is the core function of calculating with data points. It is based on the pgfmath engine, but allows
 also the usage of symbolic datapoints within mathematical expressions. Datapoints can either are inserted into the
 calculations with the \cmd{d(\meta{path})} or the \cmd{data("\meta{path}")} notation. The starred variant of
-\cmd{\drefcalc} does not print the result, but only sets the result macros.
+\macro{\drefcalc} does not print the result, but only sets the result macros.
 
-It is important to note, that \cmd{\drefcalc} always uses the \textbf{/pgf/fpu} environment. The FPU feature of pgfmath
+It is important to note, that \macro{\drefcalc} always uses the \textbf{/pgf/fpu} environment. The FPU feature of pgfmath
 is used to handle large numbers, which may occur often when handling experiment data points.
 
 \begin{example}
@@ -347,14 +410,14 @@ is used to handle large numbers, which may occur often when handling experiment 
 \begin{verbatim}
 \drefcalc{(4+7)/12 * 100}\\
 \drefcalc{d(/med A/mice count) * 100}\\
-\drefcalc{data("/med A/mice count") * 100}
+\drefcalc{data("/med A/mice count") * 100}\\
 \drefcalc*{1+3}\\
 \drefresult
 \end{verbatim}
 \end{codeexample}
 
 Since the default printing mechanism of \dataref utilizes PGF, all options from \texttt{/pgf/number format} can be
-directly used in the options. \cmd{\drefformat} does only the printing. For documentation on the available options,
+directly used in the options. \macro{\drefformat} does only the printing. For documentation on the available options,
 please consult the PGF manual.
 
 \begin{example}
@@ -482,31 +545,14 @@ unit/scale to=h]{5000}.
 \end{verbatim}
 \end{codeexample}
 
-%
-%dref,drefrel:'%
-%\dref[unit=\joule]{/duration};\drefrel[delta=/duration B]{/duration}'%
-%
-%drefcalc:'%
-%\drefcalc[]{d(/duration) + 2}--after:\drefresult**\drefunit%
-%'
-%
-%From save:'\drefcalc[ignoremissing]{d(/lateron)+d(/lateron 2)}'
-%
-%drefcalc:'%
-%\drefcalc[scale by=2,unit/scale to auto]{d(/duration) + 2}--after:\drefresult**\drefunit%
-%'
-%
-%\drefsave[unit=\milli\second]{/lateron}{3}
-%\drefsave[unit=\milli\second]{/lateron 2}{5}
-%
 
 \subsection{Relating Datapoints}
 
-\Macro[(@options, @calc, @set)]{\drefrel*[\meta{options}]\{\meta{key or value}\}}
-\Macro[(@options, @calc, @print, @set)]{\drefrel[\meta{options}]\{\meta{key or value}\}}
+\Macro[(@calc, @set)]{\drefrel*[\meta{options}]\{\meta{key or value}\}}
+\Macro[(@calc, @print, @set)]{\drefrel[\meta{options}]\{\meta{key or value}\}}
 
-Often, datapoints are set in relation to each other. This can either be done with \cmd{\drefcalc} or, more explictily,
-with \cmd{\drefrel}. The different options that come along \cmd{\drefrel}, add steps to the @calc phase and can,
+Often, datapoints are set in relation to each other. This can either be done with \macro{\drefcalc} or, more explictily,
+with \macro{\drefrel}. The different options that come along \macro{\drefrel}, add steps to the @calc phase and can,
 therefore, be combinated with any other dref macro that includes the @calc phase.
 
 All operations operate on the current result, which is initially the given key or value from the mandatory argument.
@@ -522,8 +568,8 @@ All operations operate on the current result, which is initially the given key o
 The different relation operations try to have a speaking name, such that the \TeX{} code is easily understandable by the
 writer. This explicit notation aims to prevent common mistakes, like confusing denominator and numerator.
 
-The starred version of \cmd\drefrel does not print any number, but only saves the result in \cmd\drefresult. Instead of
-only taking datapoint keys, \cmd\drefrel, as well as the relating operations, take either a key or a bare number as you can
+The starred version of \macro\drefrel does not print any number, but only saves the result in \macro\drefresult. Instead of
+only taking datapoint keys, \macro\drefrel, as well as the relating operations, take either a key or a bare number as you can
 see from the example.
 
 \Option[(no default)]{/dref/scale by=\meta{key or value}}
@@ -586,7 +632,7 @@ operations scale the result to the base value, and the percent operations give t
  Often different columns in a table have to be obtained from your data
  points. Often those rows and columns are similar. Generating parts of
  tables within \LaTeX is very tricky, so \dataref provides you
- with \cmd{\drefrow}. This macro iterates over a comma-separated list
+ with \macro{\drefrow}. This macro iterates over a comma-separated list
  of values and fills out a macro which is interpreted as a symbolic
  data point. The entries are seperated with \& and printed. In the
  starred variant the resulting text is not interpreted as symbolic
@@ -594,9 +640,9 @@ operations scale the result to the base value, and the percent operations give t
 
  Both, unstarred and starred variant take a template (a macro body) that is expanded once for every item in the given
  list. The first replacement \verb|#1| is list item and the second \verb|#2| is the current index starting from 0. The
- unstarred variant interprets the expanded result as a datapoint key and uses \cmd\dref to expand it; the optional
- parameter is passed through to every invocation of \cmd\dref.
- The starred variant does not wrap the result into \cmd\dref, and, therefore, is more flexible.
+ unstarred variant interprets the expanded result as a datapoint key and uses \macro\dref to expand it; the optional
+ parameter is passed through to every invocation of \macro\dref.
+ The starred variant does not wrap the result into \macro\dref, and, therefore, is more flexible.
 
  \begin{example}
    \begin{tabular}{|c|c|c|}\hline
@@ -621,7 +667,7 @@ operations scale the result to the base value, and the percent operations give t
  \Macro[(@calc)]{\drefassert\{\meta{expr}\}}
 
  Sometimes the underlying data changes while you are writing. But what
- if your prose text relies on certain characteristics of the data. \cmd{\drefassert} uses a pgfmath
+ if your prose text relies on certain characteristics of the data. \macro{\drefassert} uses a pgfmath
  expression that evaluates to \verb|true| or \verb|false|. When the
  assertion holds (\verb|true|) nothing happens, only a terminal message
  is printed. When it does not hold (\verb|false|) the compilation is aborted.
@@ -673,7 +719,7 @@ a few selected PDF readers\footnote{In doubt use Acrobat}.
  \Option{[usagereport]}
  \Option{[refall]}
 
- With the \textbf{usagereport} package option enabled, \cmd{\drefusagereport} generates a usagereport of all referenced
+ With the \textbf{usagereport} package option enabled, \macro{\drefusagereport} generates a usagereport of all referenced
  keys. The usage report groups the keys by the help texts. If the refall package option is given, all keys are marked as
  referenced.
 
