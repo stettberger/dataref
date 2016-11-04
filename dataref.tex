@@ -116,15 +116,15 @@ include all dead mice before.}
  \newdimen\examplewidth
  \newsavebox{\codebox}
  \newenvironment{example}[1][\marginparwidth-12pt]
- {\begin{lrbox}{\codebox}\begin{minipage}{#1}}
+ {\begin{lrbox}{\codebox}\begin{minipage}{#1-2\fboxsep}}
  {\end{minipage}\end{lrbox}%
    \examplewidth=\wd\codebox%
-   \addtolength{\examplewidth}{-1.2\marginparwidth}%
+   \addtolength{\examplewidth}{-\marginparwidth+15pt}%
    \global\examplewidth=\examplewidth%
-  \noindent\hspace{-0.8\marginparwidth}\colorbox{examplefill}{\usebox{\codebox}}\hspace{12pt}}
+  \noindent\hspace{-\marginparwidth}\colorbox{examplefill}{\usebox{\codebox}}\hspace{12pt}}
 
  \newenvironment{codeexample}
- {\begin{lrbox}{\codebox}\begin{minipage}{\textwidth+\examplewidth}}
+ {\begin{lrbox}{\codebox}\begin{minipage}{\textwidth-\examplewidth-2\fboxsep}}
 {\end{minipage}\end{lrbox}\noindent\colorbox{codebackground}{\usebox{\codebox}}\global\examplewidth=0pt%
 \par\vspace{1em}}%
 
