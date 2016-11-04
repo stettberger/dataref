@@ -15,7 +15,7 @@
 % This work consists of the files dataref.tex and dataref.sty
 
 \documentclass{ltxdoc}
-\usepackage[usagereport]{dataref}[2015/09/17]
+\usepackage[usagereport]{dataref}[2016/11/15]
 
 \EnableCrossrefs
 \CodelineIndex
@@ -83,6 +83,7 @@ include all dead mice before.}
    Right brace   \}     Tilde         \~}
 
 
+ \changes{v0.6}{2016/11/15}{Units, Unit Scaling, general overhaul}
  \changes{v0.4}{2015/04/21}{Remove Spurious Whitespaces}
  \changes{v0.1}{2013/12/06}{Initial version}
 
@@ -132,7 +133,7 @@ include all dead mice before.}
  \providecommand*{\url}{\texttt}
  \GetFileInfo{dataref.sty}
  \title{The \textsf{dataref} package}
- \author{Christian Dietrich 2013-2014\\ \url{stettberger@dokucode.de}\\
+ \author{Christian Dietrich 2013-2016\\ \url{stettberger@dokucode.de}\\
         \url{https://github.com/stettberger/dataref}}
  \date{\filedate~\fileversion}
 
@@ -685,7 +686,7 @@ Of the more than thirty infected mice...
  \Option[(default \textbf{true})]{/dref/noassert=\meta{true or false}}
 
  The \textbf{noassert} deescalates all assertion errors to mere warnings. This option can also be given at the
- \cmd\usepackage invication.
+ \cmd{\usepackage} invication.
 
 \Option[(no default, initially \textbf{none}, choice)]{/dref/annotate=\meta{annotation type}}
 \Option[(choice item)]{/dref/annotate=none}
