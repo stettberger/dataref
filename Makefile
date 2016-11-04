@@ -15,7 +15,7 @@ dataref-luatex.pdf: dataref.tex dataref.sty
 
 
 
-dataref.zip: dataref.dtx dataref.ins dataref.pdf README.md
+dataref.zip: dataref.sty dataref.tex dataref.pdf README.md
 	mkdir dataref
 	cp $^ dataref
 	mv dataref/README.md dataref/README

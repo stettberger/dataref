@@ -25,12 +25,12 @@ Building the documentation
 With latexmk installed:
 
     make
-    
+
 or
 
-    make dataref.sty; pdflatex dataref.dtx; pdflatex dataref.dtx; pdflatex dataref.dtx
-    
-    
+    pdflatex dataref.tex; pdflatex dataref.tex; pdflatex dataref.tex
+
+
 Examples
 ========
 
@@ -38,7 +38,7 @@ Setting symbolic data points
 
     \drefset{/count}{42}
     \drefset{/abc}{23}
-   
+
 Referencing them with \dref, \drefcalc, \drefassert
 
     \dref{/count}  => 42
