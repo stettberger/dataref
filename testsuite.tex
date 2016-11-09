@@ -26,6 +26,15 @@
   \ExpectTypeset{\drefsave[unit=ms]{/save/2}{2}}{}
 \end{qstest}
 
+\begin{qstest}{scale to auto: positive and negative numbers}{space}
+  \drefkeys{unit/new scala={
+      1/kJ, 1000/J, 1000/mJ, 1000/uJ, 1000/nJ
+    }
+  }
+  \ExpectTypeset{\drefrel[unit=J,unit/scale to auto]{0.0005}}{0.5\,mJ}
+  \ExpectTypeset{\drefrel[unit=J,unit/scale to auto]{-0.0005}}{$-$0.5\,mJ}
+\end{qstest}
+
 \end{document}
 %%% Local Variables:
 %%% mode: latex

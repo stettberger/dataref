@@ -876,7 +876,7 @@
       \drefkeys{\dref@unit@key/.get=\dref@unit@scala}%
       \expandafter\def\expandafter\drefunit@best\expandafter{\drefunit}%
       \def\drefunit@bestvalue{\drefresult}%
-      \def\@@score####1{abs(1 / ( (#1) - (####1)))}%
+      \def\@@score####1{1 / ( abs(#1) - abs(####1))}%
       \def\do####1{%
         \edef\dref@unit@key{/dref/units/\expandafter\detokenize\expandafter{\drefunit} to \detokenize{####1}}%
         \pgfkeys{\dref@unit@key/.get=\dref@unit@factor}%
