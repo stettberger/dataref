@@ -3,6 +3,7 @@
 \usepackage{qstest}
 \usepackage{xspace}
 \usepackage{pdftexcmds}
+\usepackage[strings]{underscore}
 
 \begin{document}
 \def\ExpectTypeset#1#2{%
@@ -14,6 +15,12 @@
 }
 
 \makeatletter
+
+\begin{qstest}{underscore package: fix for active _ character}{space}
+  \drefkeys{debug}
+  \ExpectTypeset{\drefset{_}{1}\dref{_}}{1}
+\end{qstest}
+
 
 \begin{qstest}{drefset: no space}{space}
   \ExpectTypeset{\dref@set{}{1}{/set/1}}{}

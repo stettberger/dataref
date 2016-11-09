@@ -67,6 +67,7 @@
      \expandafter\dref@found\expandafter{\dref@set@path}{0}
      \expandafter\dref@referenced\expandafter{\dref@set@path}{0}%
   \fi%
+  \dref@debug{\dref@set@path = \dref@set@value (\detokenize{#1})}%
 }
 
 \def\dref@load#1#2#3{%
@@ -260,10 +261,33 @@
   },
 }
 
+% Compatibility with underscore package
+\def\dref@normalunderscore{_}
+\edef\dref@catcode@underscore{\the\catcode`_}
+\catcode`_=13
+\def\dref@catcode@setup{%
+  \edef _{\dref@normalunderscore}%
+}
+\catcode`_=\dref@catcode@underscore
+
+
+\AtBeginDocument{%
+  \ifdim 13pt = \the\catcode`_pt%
+    % _ is an active character
+    \drefkeys{@[/.append code={%
+        \dref@catcode@setup%
+     }%
+   }%
+  \fi%
+}
+
 \newcommand{\drefset}[3][]{%
   % I put this version here, since it
   % provides a sped up mass setting of keys
   \begingroup%
+    \ifdim 13pt = \the\catcode`_pt%
+      \dref@catcode@setup%
+    \fi%
     \edef\drefresult{#3}%
     \def\drefunit{}%
     \drefkeys{#1}%
