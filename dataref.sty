@@ -463,12 +463,28 @@
 
 % We use the FP Library of expl3. This seems to work better for
 % floating numbers and for integers
+\ifLuaTeX%
+\def\drefmathparse#1{%
+  \edef\pgfmathresult{\directlua{%
+      abs=math.abs ;
+      result = (#1);
+      if result == false then
+         tex.print(0);
+      elseif result == true then
+         tex.print(1);
+      else
+         tex.print(string.format(string.char(37).."s", result))
+      end
+    }}%
+}
+\else
 \ExplSyntaxOn % we want to do tests % Usepackage xfp
 \cs_set_eq:NN \dref@fpeval \fp_eval:n
 \ExplSyntaxOff
 \def\drefmathparse#1{%
   \edef\pgfmathresult{\dref@fpeval{#1}}%
 }
+\fi
 
 \drefkeys{
   @init/.append style={%

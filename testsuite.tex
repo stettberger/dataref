@@ -3,7 +3,14 @@
 \usepackage{qstest}
 \usepackage{xspace}
 \usepackage{pdftexcmds}
+\usepackage{iftex}
+
 \usepackage[strings]{underscore}
+\ifLuaTeX
+  \protected\def\pdfresettimer{\directlua{pdfelapsedtimerBasetime = os.clock()}}
+  \protected\def\pdfelapsedtime{\numexpr
+    \directlua{tex.print(math.floor((os.clock()-pdfelapsedtimerBasetime)*65536+0.5))}\relax}
+\fi
 
 \begin{document}
 \def\ExpectTypeset#1#2{%
@@ -11,7 +18,8 @@
   \sbox0{#1}%
   \typeout{TIME: {\the\pdfelapsedtime} ticks for \detokenize{#1}}%
   \sbox2{#2}%
-  \Expect*{\the\wd0}*{\the\wd2}%
+  :#1:#2:\par%
+  \Expect*{\the\wd0}\NearTo{\the\wd2}%
 }
 
 \makeatletter
@@ -43,8 +51,7 @@
 \end{qstest}
 
 \begin{qstest}{Use good FPU math}{space}
-  \drefcalc[fixed]{8010*2013}
-  %\ExpectTypeset{\drefcalc[fixed]{8010*2013}}{16\,124\,130}
+  \ExpectTypeset{\drefcalc[fixed]{8010*2013}}{16,124,130}
 \end{qstest}
 
 \end{document}
