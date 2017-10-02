@@ -29,6 +29,7 @@
 \def\dref@warning#1{\drefutil@packagewarning{dref}{#1}}
 
 \RequirePackage{pgf}
+\RequirePackage{xfp}
 \usepgflibrary{fpu}
 \RequirePackage{iftex}
 \RequirePackage{kvoptions}
@@ -107,7 +108,7 @@
   .search also={/pgf/number format},
   % The @init action is used to initialize all other actions
   @[/.code={\begingroup%
-    \pgfkeys{/pgf/fpu,/pgf/fpu/output format=fixed}% No more dimensions too large
+    % /pgf/fpu: \pgfkeys{/pgf/fpu,/pgf/fpu/output format=fixed}% No more dimensions too large
     \def\drefunit{}% At first we are unitless
     \aftergroup\edef%
     \aftergroup\drefresult%
@@ -460,6 +461,15 @@
 \def\dref@parser@end#1#2\@nnil{}
 \csdef{dref@parser@@}{\dref@parser@end}
 
+% We use the FP Library of expl3. This seems to work better for
+% floating numbers and for integers
+\ExplSyntaxOn % we want to do tests % Usepackage xfp
+\cs_set_eq:NN \dref@fpeval \fp_eval:n
+\ExplSyntaxOff
+\def\drefmathparse#1{%
+  \edef\pgfmathresult{\dref@fpeval{#1}}%
+}
+
 \drefkeys{
   @init/.append style={%
     @calc/.code={},%
@@ -467,7 +477,7 @@
   @calc pgf/.style={
     @calc/.append code={%
       \dref@parser{#1}{\dref@calc@@ready}%
-      \pgfmathparse{\dref@calc@@ready}%
+      \drefmathparse{\dref@calc@@ready}%
       \dref@debug{#1 -> \dref@calc@@ready = \pgfmathresult}%
       \edef\drefresult{\pgfmathresult}%
      }
@@ -904,10 +914,10 @@
       \def\do####1{%
         \edef\dref@unit@key{/dref/units/\expandafter\detokenize\expandafter{\drefunit} to \detokenize{####1}}%
         \pgfkeys{\dref@unit@key/.get=\dref@unit@factor}%
-        \pgfmathparse{\@@score{\drefunit@bestvalue} < \@@score{\drefresult \dref@unit@factor}}%
+        \drefmathparse{\@@score{\drefunit@bestvalue} < \@@score{\drefresult \dref@unit@factor}}%
         %\typeout{\drefunit \pgfmathresult \detokenize{####1}}%
         \ifdim\pgfmathresult pt=1.0 pt%
-          \pgfmathparse{(\drefresult) \dref@unit@factor}%
+          \drefmathparse{(\drefresult) \dref@unit@factor}%
           \edef\drefunit@bestvalue{\pgfmathresult}%
           \def\drefunit@best{####1}%
            %\typeout{\expandafter\detokenize\expandafter{\drefunit} to

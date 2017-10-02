@@ -42,6 +42,11 @@
   \ExpectTypeset{\drefrel[unit=J,unit/scale to auto]{-0.0005}}{$-$0.5\,mJ}
 \end{qstest}
 
+\begin{qstest}{Use good FPU math}{space}
+  \drefcalc[fixed]{8010*2013}
+  %\ExpectTypeset{\drefcalc[fixed]{8010*2013}}{16\,124\,130}
+\end{qstest}
+
 \end{document}
 %%% Local Variables:
 %%% mode: latex
