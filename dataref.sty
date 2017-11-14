@@ -33,9 +33,6 @@
 \RequirePackage{iftex}
 \RequirePackage{kvoptions}
 \RequirePackage{etoolbox}
-\ifLuaTeX\else
-  \RequirePackage{xfp}
-\fi
 
 \SetupKeyvalOptions{
   family=dref,
@@ -463,9 +460,18 @@
 \def\dref@parser@end#1#2\@nnil{}
 \csdef{dref@parser@@}{\dref@parser@end}
 
+% The default fallback implementation of \drefmathparse
+\newif\ifdrefbadmath
+\drefbadmathtrue
+\def\drefmathparse#1{%
+  \pgfkeys{/pgf/fpu,/pgf/fpu/output format=fixed}%
+  \pgfmathparse{#1}%
+}%
+
 % We use the FP Library of expl3. This seems to work better for
 % floating numbers and for integers
 \ifLuaTeX%
+\drefbadmathfalse
 \def\drefmathparse#1{%
   \edef\pgfmathresult{\directlua{%
       abs=math.abs ;
@@ -480,11 +486,20 @@
     }}%
 }
 \else
-\ExplSyntaxOn % we want to do tests % Usepackage xfp
-\cs_set_eq:NN \dref@fpeval \fp_eval:n
-\ExplSyntaxOff
-\def\drefmathparse#1{%
-  \edef\pgfmathresult{\dref@fpeval{#1}}%
+\IfFileExists{xfp.sty}{
+  \drefbadmathfalse
+  \RequirePackage{xfp}
+  \ExplSyntaxOn % we want to do tests % Usepackage xfp
+  \cs_set_eq:NN \dref@fpeval \fp_eval:n
+  \ExplSyntaxOff
+  \def\drefmathparse#1{%
+    \edef\pgfmathresult{\dref@fpeval{#1}}%
+  }
+}{% We fall back to the default legacy
+  \dref@warning{****************************************************}%
+  \dref@warning{Dataref will use bad math library (/pgf/fpu). Be aware
+  of floating point rounding errors}%
+  \dref@warning{****************************************************}%
 }
 \fi
 
@@ -498,9 +513,10 @@
       \drefmathparse{\dref@calc@@ready}%
       \dref@debug{#1 -> \dref@calc@@ready = \pgfmathresult}%
       \edef\drefresult{\pgfmathresult}%
-     }
+    }
   }
 }
+
 
 \protected\def\drefcalc{\@ifstar\drefcalc@starred\drefcalc@unstarred}
 \newcommand{\drefcalc@unstarred}[2][]{% Unstarred
