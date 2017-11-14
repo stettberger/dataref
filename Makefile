@@ -26,4 +26,4 @@ dataref.zip: dataref.sty dataref.tex dataref.pdf README.md
 
 test: testsuite.tex dataref.sty
 	pdflatex testsuite.tex
-	pdflatex testsuite.tex
+	lualatex testsuite.tex

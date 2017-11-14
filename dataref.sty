@@ -34,6 +34,7 @@
 \RequirePackage{kvoptions}
 \RequirePackage{etoolbox}
 
+
 \SetupKeyvalOptions{
   family=dref,
   prefix=dref@
@@ -460,20 +461,15 @@
 \def\dref@parser@end#1#2\@nnil{}
 \csdef{dref@parser@@}{\dref@parser@end}
 
-% The default fallback implementation of \drefmathparse
 \newif\ifdrefbadmath
-\drefbadmathtrue
-\def\drefmathparse#1{%
-  \pgfkeys{/pgf/fpu,/pgf/fpu/output format=fixed}%
-  \pgfmathparse{#1}%
-}%
+\newif\ifdref@xfp
+\IfFileExists{xfp.sty}{\dref@xfptrue}{\dref@xfpfalse}
 
-% We use the FP Library of expl3. This seems to work better for
-% floating numbers and for integers
-\ifLuaTeX%
-\drefbadmathfalse
-\def\drefmathparse#1{%
-  \edef\pgfmathresult{\directlua{%
+% For LuaLaTeX: use the lua math engine
+\ifLuaTeX
+  \drefbadmathfalse%
+  \def\drefmathparse#1{%
+    \edef\pgfmathresult{\directlua{%
       abs=math.abs ;
       result = (#1);
       if result == false then
@@ -483,25 +479,33 @@
       else
          tex.print(string.format(string.char(37).."s", result))
       end
-    }}%
-}
-\else
-\IfFileExists{xfp.sty}{
-  \drefbadmathfalse
+    }}}%
+% We use the FP Library of expl3. This seems to work better for
+% floating numbers and for integers
+\else \ifdref@xfp
   \RequirePackage{xfp}
-  \ExplSyntaxOn % we want to do tests % Usepackage xfp
-  \cs_set_eq:NN \dref@fpeval \fp_eval:n
-  \ExplSyntaxOff
+  \drefbadmathfalse%
+  \ExplSyntaxOn% we want to do tests % Usepackage xfp
+  \cs_set_eq:NN \dref@fpeval \fp_eval:n%
+  \ExplSyntaxOff%
   \def\drefmathparse#1{%
     \edef\pgfmathresult{\dref@fpeval{#1}}%
-  }
-}{% We fall back to the default legacy
+  }%
+%% Fallback to PGFMath
+\else
+  \drefbadmathtrue%
+  \def\drefmathparse#1{%
+    \pgfkeys{/pgf/fpu,/pgf/fpu/output format=fixed}%
+    \pgfmathparse{#1}%
+  }%
   \dref@warning{****************************************************}%
-  \dref@warning{Dataref will use bad math library (/pgf/fpu). Be aware
+  \dref@warning{Dataref will use bad math library (/pgf/fpu). Be aware%
   of floating point rounding errors}%
   \dref@warning{****************************************************}%
-}
+  \dref@pgfmath
+  \fi
 \fi
+
 
 \drefkeys{
   @init/.append style={%
