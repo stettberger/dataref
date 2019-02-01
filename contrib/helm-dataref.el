@@ -28,14 +28,14 @@
   :group 'helm)
 
 (defcustom helm-dataref-find-keys-path
-  (concat default-directory "find_keys.py")
+  (concat default-directory "list_keys.py")
   "Path to the find_keys.py program"
   :group 'helm-dataref
   :type  'string
   )
 
 (defcustom helm-dataref-file
-  #'TeX-master-file
+  #'(lambda () (TeX-master-file t))
   "The function is used to find the used the root tex file.
 
    Default is the TeX master file."
@@ -69,7 +69,7 @@
         :action `(("\\dref" . ,(helm-dataref--insert "dataref"))
                   )))
 
-(defun helm-dataref(fn)
+(defun helm-dataref (&optional fn)
   "Preconfigured `helm' for dataref keys"
   (interactive)
   (setq helm-dataref--candidates-alist
