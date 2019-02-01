@@ -33,6 +33,8 @@
 \RequirePackage{iftex}
 \RequirePackage{kvoptions}
 \RequirePackage{etoolbox}
+\RequirePackage{import}
+
 
 
 \SetupKeyvalOptions{
@@ -301,11 +303,27 @@
   \drefkeys{@[, @init, value={#3}, #1, save={#2}, @set, @]}%
 }
 
+\def\dref@splitpath@helper#1/#2\@nnil{%
+  \ifx&#2&% Basename found
+     \def\dref@basename{#1}\let\@next\relax%
+  \else% Another Dirname
+     \edef\dref@dirname{\dref@dirname #1/}%
+     \def\@next{\dref@splitpath@helper#2\@nnil}%
+  \fi%
+  \@next%
+}
+\def\dref@splitpath#1{%
+   % Splits path into \dref@dirname and \dref@basename
+   \def\dref@dirname{}%
+   \dref@splitpath@helper #1/\@nnil%
+}
+
 \newcommand{\drefinput}[2][]{%
-  \begingroup
-  \drefkeys{prefix/.append={#1}}
-  \input{#2}
-  \endgroup
+  \begingroup%
+  \drefkeys{prefix/.append={#1}}%
+  \dref@splitpath{#2}%
+  \subimport{\dref@dirname}{\dref@basename}%
+  \endgroup%
 }
 
 

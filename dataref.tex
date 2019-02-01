@@ -296,10 +296,11 @@ It is a value-typed PGF key, so operations like
 
 \Macro{\drefinput[\meta{prefix}]\{\meta{filename}\}}
 
-Uses \cmd{\input} to read the file. During the processing of this file
-\option{prefix} is set to the given value. This is useful to include
-several files that resulted from different experiments but include
-equal datapoint keys.
+Reads in the given \TeX/dataref file with the given key prefix. Therefore, all included \cmd{\drefset} commands are define their keys with the given prefix.
+This is useful to include several files that resulted from different experiments but include equal datapoint keys.
+
+This command uses \cmd{\subimport} from the \texttt{import} package to read the file.
+Hence, if there is an \cmd{\drefinput} in an included file, it search its filename relative to its own directory.\footnote{In former versions, \cmd{\drefinput} relied directly on \cmd{\input} and, therefore, the filename was interpreted relative to the root file.}.
 
 
 \subsection{Referencing Datapoints}
