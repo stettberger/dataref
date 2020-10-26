@@ -544,7 +544,7 @@
   \drefkeys{@[,@init, print=default, @calc pgf={#2}, #1, @calc, @print, @set,%
     @annotate={\textbackslash drefcalc[#1]\{#2\}},@]}%
 }
-\newcommand{\drefcalc@starred}[2][]{ % Starred
+\newcommand{\drefcalc@starred}[2][]{% Starred
   \drefkeys{@[,@init, @calc pgf={#2}, #1, @calc, @set,%
     @annotate={\textbackslash \drefcalc*[#1]\{#2\}},@]%
   }%
@@ -787,7 +787,7 @@
       \else%
         \dref@error{Assertion failed: #1}%
         \fi%
-     \else
+     \else%
        \dref@warning{Assertion holds: #1}%
      \fi%
   \endgroup%
