@@ -56,6 +56,17 @@
   \end{qstest}
 \fi
 
+\begin{qstest}{Equal Signs}{space}
+  \drefset{/col=b/a=1/th=0}{2}
+  \drefset{/col=b/a=1/th=7}{9}
+  \drefset{plain}{2}
+  \ExpectTypeset{\dref{/col=b/a=1/th=0}}{2}
+  \ExpectTypeset{\drefcalc{d(/col=b/a=1/th=0)*2.5}}{5}
+  \ExpectTypeset{\drefrel[precision=0, percent of=plain]{/col=b/a=1/th=0}}{100}
+  \ExpectTypeset{\drefrel[precision=0, percent of={/col=b/a=1/th=7}]{plain}}{22}
+\end{qstest}
+  
+
 \end{document}
 %%% Local Variables:
 %%% mode: latex

@@ -803,7 +803,7 @@
     @calc pgf={100 * (\drefresult)},
   },
   percent of/.style={
-    factor of=#1, percent,
+    factor of={#1}, percent,
     @calc/.append code={\def\drefunit{}},
   },
   scale by/.style={
