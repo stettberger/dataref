@@ -986,13 +986,14 @@
       \drefkeys{\dref@unit@key/.get=\dref@unit@scala}%
       \expandafter\def\expandafter\drefunit@best\expandafter{\drefunit}%
       \def\drefunit@bestvalue{\drefresult}%
-      \def\@@score####1{1 / ( abs(#1) - abs(####1))}%
+      \def\@@score####1{(1 / ( abs(abs(#1) - abs(####1))))}%
       \def\do####1{%
         \edef\dref@unit@key{/dref/units/\expandafter\detokenize\expandafter{\drefunit} to \detokenize{####1}}%
         \pgfkeys{\dref@unit@key=\drefresult}%
         \edef\drefunit@value{\pgfmathresult}%
-        \drefmathparse{\@@score{\drefunit@bestvalue} < \@@score{\drefunit@value}}%
         % \typeout{\drefresult \drefunit -> \pgfmathresult \detokenize{####1}}%
+        %\typeout{\@@score{\drefunit@bestvalue} < \@@score{\drefunit@value}}%
+        \drefmathparse{\@@score{\drefunit@bestvalue} < \@@score{\drefunit@value}}%
         \ifdim\pgfmathresult pt=1.0 pt%
           \drefmathparse{(\drefresult) \dref@unit@factor}%
           \edef\drefunit@bestvalue{\drefunit@value}%
