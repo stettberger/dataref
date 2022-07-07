@@ -4,6 +4,7 @@
 \usepackage{xspace}
 \usepackage{pdftexcmds}
 \usepackage{iftex}
+\usepackage[binary-units]{siunitx}
 
 \usepackage[strings]{underscore}
 \ifLuaTeX
@@ -41,14 +42,6 @@
   \ExpectTypeset{\drefsave[unit=ms]{/save/2}{2}}{}
 \end{qstest}
 
-\begin{qstest}{scale to auto: positive and negative numbers}{space}
-  \drefkeys{unit/new scala={
-      1/kJ, 1000/J, 1000/mJ, 1000/uJ, 1000/nJ
-    }
-  }
-  \ExpectTypeset{\drefrel[unit=J,unit/scale to auto]{0.0005}}{0.5\,mJ}
-  \ExpectTypeset{\drefrel[unit=J,unit/scale to auto]{-0.0005}}{$-$0.5\,mJ}
-\end{qstest}
 
 \ifdrefbadmath\else
   \begin{qstest}{Use good FPU math}{space}
@@ -65,7 +58,46 @@
   \ExpectTypeset{\drefrel[precision=0, percent of=plain]{/col=b/a=1/th=0}}{100}
   \ExpectTypeset{\drefrel[precision=0, percent of={/col=b/a=1/th=7}]{plain}}{22}
 \end{qstest}
-  
+
+
+\section{Units}
+
+\begin{qstest}{Scale with SIunitX}{space}
+  \drefset{/size}{47812399}
+  \drefset[unit=\byte]{/sizeb}{8973249}
+
+  \drefkeys{
+    unit/new scala={1/\gibi\byte,1024/\mebi\byte,1024/\kibi\byte,1024/\byte},
+    unit/format default=siunitx
+  }
+
+  \ExpectTypeset{\drefcalc[unit=\byte,unit/scale to=\mebi\byte,precision=1]{d(/size)}}{45.6\,MiB}
+  \ExpectTypeset{\dref[unit/scale to=\mebi\byte,precision=1]{/sizeb}}{8.6\,MiB}
+  \ExpectTypeset{\dref[unit/scale to=\mebi\byte,unit/scale to=\kibi\byte,precision=0]{/sizeb}}{8,763\,KiB}
+\end{qstest}
+
+\begin{qstest}{scale to auto: positive and negative numbers}{space}
+  \drefkeys{unit/new scala={
+      1/kJ, 1000/J, 1000/mJ, 1000/uJ, 1000/nJ
+    }
+  }
+  \ExpectTypeset{\drefrel[unit=J,unit/scale to auto]{0.0005}}{0.5\,mJ}
+  \ExpectTypeset{\drefrel[unit=J,unit/scale to auto]{-0.0005}}{$-$0.5\,mJ}
+\end{qstest}
+
+\begin{qstest}{scale to auto: basic scaling}{space}
+  \drefkeys{
+    unit/new scala={
+      1/y, 365/d, 24/h, 60/m, 60/s, 1000/ms, 1000/us, 1000/ns
+    }
+  }
+  \ExpectTypeset{\drefformat[unit=ms,unit/scale to auto]{1234}}{1.23\,s}
+  \ExpectTypeset{\drefformat[unit=ms,unit/scale to auto]{4135413}}{1.15\,h}
+  \ExpectTypeset{\drefformat[unit=ms,unit/scale to auto]{213516513245}}{6.77\,y}
+  \ExpectTypeset{\drefformat[unit=ms,unit/scale to auto]{24}}{24\,ms}
+\end{qstest}
+
+
 
 \end{document}
 %%% Local Variables:

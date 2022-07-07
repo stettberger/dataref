@@ -889,19 +889,31 @@
        \def\dref@unit@factor{}%
        \dref@unit@new@inner{##2}##3\@stop%
     \fi%
-    \dref@outer%
+   \dref@outer%
   }
   \def\dref@unit@new@inner##1##2/##3,##4\@stop{%
     \def\dref@inner{\dref@unit@new@inner{##1}##4\@stop}%
     \ifx##4&&\def\dref@inner{}\else\fi%
     \edef\dref@unit@factor{\dref@unit@factor * ##2}%
-    \pgfkeys{/dref/units/\detokenize{##1} to \detokenize{##3}/.initial/.expanded={* (1 \dref@unit@factor)},%
-             /dref/units/\detokenize{##3} to \detokenize{##1}/.initial/.expanded={/ (1 \dref@unit@factor)},%
-    }%
+    \edef\@tmp{* (1 \dref@unit@factor)}%
+    \expandafter\dref@unit@defcalc\expandafter{\@tmp}{##1}{##3}%
+    \edef\@tmp{/ (1 \dref@unit@factor)}%
+    \expandafter\dref@unit@defcalc\expandafter{\@tmp}{##3}{##1}%
     \dref@inner%
   }%
   \dref@unit@new@outer#1,\@nnil%
 }
+% We use this macro to define a UNIT->UNIT scale function
+% If invoked, the key sets \pgfmathresult
+\def\dref@unit@defcalc#1#2#3{%
+  % \dref@debug{SET->/dref/units/\detokenize{#2} to \detokenize{#3}=#1}%
+  \pgfkeys{
+    /dref/units/\detokenize{#2} to \detokenize{#3}/.code={
+      \drefmathparse{(##1) #1}%
+    }%
+  }%
+}
+
 
 \drefkeys{
   unit/new scala/.code={%
@@ -948,12 +960,21 @@
   unit/@combine/.style={
     unit/@assert compatible={#1}, unit/@try override={#1}, unit/@format enable
   },
-  unit/scale to/.code={%
-    \edef\dref@unit@key{/dref/units/\expandafter\detokenize\expandafter{\drefunit} to \detokenize{#1}}%
-    \drefkeys{%
-      \dref@unit@key/.get=\dref@unit@factor,%
-      @calc pgf/.expanded={((\noexpand\drefresult) \dref@unit@factor)},%
-      unit=#1%
+  unit/@get scale/.code 2 args={%
+    \edef\dref@unit@key{/dref/units/\detokenize{#1} to \detokenize{#2}}%
+    \typeout{\dref@unit@key}%
+  },%
+  unit/scale to/.style={
+    @calc/.append code={%
+      \dref@ifunit{%
+        \dref@debug{unit/scale to=\detokenize{#1}: \drefresult \drefunit}%
+        \edef\dref@unit@key{/dref/units/\expandafter\detokenize\expandafter{\drefunit} to \detokenize{#1}}%
+        \drefkeys{\dref@unit@key=\drefresult}%
+        \edef\drefresult{\pgfmathresult}%
+        \def\drefunit{#1}%
+      }{%
+        \dref@error{Called 'unit/scale to' on value (\drefresult) without unit}%
+      }% ! \drefunit=\empty
     }%
   },
   unit/scale to auto/.default=50,
@@ -968,21 +989,22 @@
       \def\@@score####1{1 / ( abs(#1) - abs(####1))}%
       \def\do####1{%
         \edef\dref@unit@key{/dref/units/\expandafter\detokenize\expandafter{\drefunit} to \detokenize{####1}}%
-        \pgfkeys{\dref@unit@key/.get=\dref@unit@factor}%
-        \drefmathparse{\@@score{\drefunit@bestvalue} < \@@score{\drefresult \dref@unit@factor}}%
-        %\typeout{\drefunit \pgfmathresult \detokenize{####1}}%
+        \pgfkeys{\dref@unit@key=\drefresult}%
+        \edef\drefunit@value{\pgfmathresult}%
+        \drefmathparse{\@@score{\drefunit@bestvalue} < \@@score{\drefunit@value}}%
+        % \typeout{\drefresult \drefunit -> \pgfmathresult \detokenize{####1}}%
         \ifdim\pgfmathresult pt=1.0 pt%
           \drefmathparse{(\drefresult) \dref@unit@factor}%
-          \edef\drefunit@bestvalue{\pgfmathresult}%
+          \edef\drefunit@bestvalue{\drefunit@value}%
           \def\drefunit@best{####1}%
-           %\typeout{\expandafter\detokenize\expandafter{\drefunit} to
-           %  \detokenize{####1} : \drefunit@bestvalue}%
         \fi%
       }%
       \dolistloop\dref@unit@scala%
       \edef\drefresult{\drefunit@bestvalue}%
       \edef\drefunit{\expandonce{\drefunit@best}}%
-      }{}% ! \drefunit=\empty
+    }{
+      \dref@error{Called 'unit/scale to auto' on value (\drefresult) without unit}%
+    }% ! \drefunit=\empty
     }
   },
   unit/format default/.initial={plain},
